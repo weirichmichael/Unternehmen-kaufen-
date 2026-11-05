@@ -127,6 +127,14 @@ def parse_detail_page(html: str, listing: Listing) -> Listing:
         listing.extra["chiffre"] = facts["chiffre"]
     if facts.get("inseratstyp"):
         listing.extra["inseratstyp"] = facts["inseratstyp"]
+    # Betreuender Regionalpartner (IHK, Handwerkskammer, Sparkasse …)
+    for box in soup.select("section.inserate-info-box"):
+        head = box.select_one(".box-headline")
+        if head and "Regionalpartner" in head.get_text():
+            p = box.select_one(".box-wrapper > p")
+            if p and clean_ws(p.get_text(" ")):
+                listing.extra["regionalpartner"] = clean_ws(p.get_text(" "))
+            break
     expose = soup.select_one("a[href*='expose.pdf']")
     if expose:
         listing.extra["expose_pdf"] = urljoin(BASE, expose["href"])

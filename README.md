@@ -7,12 +7,26 @@ sich, was schon bekannt ist. So sieht man bei jedem Lauf nur das **Neue**.
 
 ## Unterstützte Börsen
 
+**Offizielle / Kammern**
+
 | Börse | Regionsfilter | Hinweise |
 |---|---|---|
-| [nexxt-change.org](https://www.nexxt-change.org) | PLZ + Umkreis (max. 100 km) | Offizielle Nachfolgebörse von KfW/BMWK/IHK/HWK, viele Kleinbetriebe. Zusätzlich wird *alles* im Umkreis geholt, nicht nur Suchbegriffe. |
-| [dub.de](https://www.dub.de) | nur Bundesland | Suche ist unscharf → lokale Bewertung sortiert. Kaufpreis wird meist nicht angezeigt, dafür Umsatz + Ergebnis. |
+| [nexxt-change.org](https://www.nexxt-change.org) | PLZ + Umkreis (max. 100 km) | Offizielle Nachfolgebörse von KfW/BMWK. **Hier stellen die IHKs, Handwerkskammern, Sparkassen und Volksbanken ihre Inserate ein** – der betreuende Partner („betreut von IHK Reutlingen“) steht im Report. Zusätzlich wird *alles* im Umkreis geholt, nicht nur Suchbegriffe. |
 
-Weitere Börsen kommen als neue Klasse in `dealscout/sources/` dazu (siehe unten).
+**Private Börsen**
+
+| Börse | Regionsfilter | Hinweise |
+|---|---|---|
+| [dub.de](https://www.dub.de) | Bundesland | Suche ist unscharf → lokale Bewertung sortiert. Kaufpreis meist nicht angezeigt, dafür Umsatz + Ergebnis. |
+| [firma-verkauf.de](https://www.firma-verkauf.de) | Bundesland | Viele Kleinbetriebe mit Preisangabe. Gesuche werden verworfen. |
+| [biz-trade.de](https://www.biz-trade.de) | Bundesland + Landkreis | Max. ~40 Treffer je Suchbegriff. Gesuche werden verworfen. |
+| [kleinanzeigen.de](https://www.kleinanzeigen.de) | PLZ + Umkreis | Privatverkäufe (Imbiss, Friseur, Kiosk, Hausmeisterservice …). Gesucht wird nur in den Rubriken *Gewerbeimmobilien* und *Weitere Dienstleistungen*, und nur Anzeigen mit Verkaufsabsicht („abzugeben“, „Nachfolger“, „Übernahme“ …) werden übernommen. |
+
+**Bewusst nicht dabei**
+
+- *Unternehmensbörse Handwerk BW* (nachfolge-im-handwerk.de): Inserate nur nach (kostenloser) Registrierung sichtbar; viele erscheinen zusätzlich auf nexxt-change.
+- *IHK-eigene Listen* (z. B. IHK München, Oldenburg): vertrauliche Vermittlung per Fragebogen/Chiffre-Liste, keine öffentliche Inseratsseite.
+- *viaductus.de*: Aggregator-Suche nur mit Login. *con|cess* ist zu matchbridge.de umgezogen, *firmenzukaufen.de* lädt Inserate nur per JavaScript – Kandidaten für später.
 
 ## Schnellstart
 
@@ -33,6 +47,7 @@ Folgeläufe laden nur noch Details für neue Inserate.
 ```bash
 python -m dealscout run                     # alle Börsen
 python -m dealscout run --source nexxt_change
+python -m dealscout run --source kleinanzeigen --source biz_trade
 python -m dealscout list                    # gespeicherte Treffer, mit aktueller Config neu bewertet
 python -m dealscout report                  # nur HTML/CSV neu erzeugen (z.B. nach Config-Änderung)
 python -m dealscout mark nexxt-change:751046 interessant --note "Exposé angefordert"

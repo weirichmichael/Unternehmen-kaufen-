@@ -42,11 +42,17 @@ class PoliteSession:
         self.s.mount("http://", HTTPAdapter(max_retries=retry))
 
     def get(self, url: str, params: dict | list | None = None) -> str:
+        return self._request("GET", url, params=params)
+
+    def post(self, url: str, data: dict) -> str:
+        return self._request("POST", url, data=data)
+
+    def _request(self, method: str, url: str, **kw) -> str:
         wait = self.delay - (time.monotonic() - self._last)
         if wait > 0:
             time.sleep(wait)
-        log.debug("GET %s %s", url, params or "")
-        resp = self.s.get(url, params=params, timeout=self.timeout)
+        log.debug("%s %s %s", method, url, kw.get("params") or kw.get("data") or "")
+        resp = self.s.request(method, url, timeout=self.timeout, **kw)
         self._last = time.monotonic()
         resp.raise_for_status()
         # Manche Server (z.B. DUB) senden kein Charset -> requests rät ISO-8859-1.

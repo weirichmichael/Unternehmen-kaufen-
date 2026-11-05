@@ -65,6 +65,27 @@ sources:
   dub:
     enabled: true
     max_pages: 3         # 18 Inserate pro Seite, Suche ist unscharf
+  # --- private Börsen ---
+  firma_verkauf:         # firma-verkauf.de, Standort: Bundesland
+    enabled: true
+    max_pages: 3
+  biz_trade:             # biz-trade.de, Standort: Bundesland + Landkreis, max. 40 Treffer je Begriff
+    enabled: true
+  kleinanzeigen:         # Privatverkäufe, PLZ + Umkreis; nur Anzeigen mit Verkaufsabsicht
+    enabled: true
+    max_pages: 2
+    # Rubriken: 277 = Gewerbeimmobilien, 298 = Weitere Dienstleistungen (dort stehen Betriebsverkäufe)
+    categories: [277, 298]
+    # eigene Suchbegriffe, weil "Hausmeisterservice" dort fast nur Dienstleistungsangebote findet
+    queries:
+      - nachfolger
+      - abzugeben
+      - zu verkaufen
+      - übernahme
+      - kundenstamm
+      - hausverwaltung
+      - hausmeister
+      - gebäudereinigung
 
 fetch_details: true      # Detailseite für neue Inserate laden (Preis, Umsatz, Beschreibung)
 delay_seconds: 1.5       # Pause zwischen Anfragen – bitte nicht runterdrehen

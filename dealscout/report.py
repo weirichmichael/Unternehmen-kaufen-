@@ -50,7 +50,7 @@ def print_table(rows: list[Row], new_keys: set[str] | None = None, limit: int = 
 CSV_FIELDS = [
     "score", "status", "title", "source", "location", "industry", "employees",
     "revenue", "earnings", "price", "price_min", "price_max", "revenue_min", "revenue_max",
-    "date", "first_seen", "matched", "url", "auch_auf", "expose_pdf", "note", "reject",
+    "date", "first_seen", "matched", "regionalpartner", "url", "auch_auf", "expose_pdf", "note", "reject",
 ]
 
 
@@ -80,6 +80,7 @@ def write_csv(rows: list[Row], path: Path) -> None:
                     "date": l.date,
                     "first_seen": r.first_seen,
                     "matched": ", ".join(l.matched),
+                    "regionalpartner": l.extra.get("regionalpartner"),
                     "url": l.url,
                     "auch_auf": l.extra.get("auch_auf"),
                     "expose_pdf": l.extra.get("expose_pdf"),
@@ -129,6 +130,10 @@ def write_html(rows: list[Row], path: Path, new_keys: set[str] | None = None, ti
             meta.append(f"<span>Ergebnis <b>{e(l.earnings)}</b></span>")
         meta.append(f"<span>Preis <b>{e(l.extra.get('kaufpreis_text') or _range(l.price_min, l.price_max, l.price) or '?')}</b></span>")
         meta.append(f"<span>MA <b>{e(l.employees or '?')}</b></span>")
+        if l.extra.get("regionalpartner"):
+            meta.append(f"<span>betreut von <b>{e(l.extra['regionalpartner'])}</b></span>")
+        if l.extra.get("entfernung"):
+            meta.append(f"<span>{e(l.extra['entfernung'])} entfernt</span>")
         if l.date:
             meta.append(f"<span>vom {e(l.date)}</span>")
         meta.append(f"<span>Status: {e(r.status)}</span>")

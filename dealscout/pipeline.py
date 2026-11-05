@@ -34,7 +34,7 @@ def build_sources(cfg: Config, http: PoliteSession, only: list[str] | None = Non
             continue
         if only and key not in only and cls.name not in only:
             continue
-        out.append(cls(http, max_pages=int(opts.get("max_pages", 5))))
+        out.append(cls(http, max_pages=int(opts.get("max_pages", 5)), options=opts))
     return out
 
 
@@ -43,7 +43,7 @@ def run(cfg: Config, store: Store, only: list[str] | None = None, refresh: bool 
     res = RunResult()
 
     for src in build_sources(cfg, http, only):
-        queries: list[str | None] = list(cfg.queries)
+        queries: list[str | None] = list(src.queries(cfg.queries))
         if cfg.browse_all_in_radius and src.supports_browse_all() and cfg.region.plz:
             queries.insert(0, None)
 

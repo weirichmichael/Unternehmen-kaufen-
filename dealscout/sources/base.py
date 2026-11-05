@@ -21,9 +21,15 @@ class Source(abc.ABC):
 
     name: str = "?"
 
-    def __init__(self, http: PoliteSession, max_pages: int = 5):
+    def __init__(self, http: PoliteSession, max_pages: int = 5, options: dict | None = None):
         self.http = http
         self.max_pages = max_pages
+        self.options = options or {}
+
+    def queries(self, general: list[str]) -> list[str]:
+        """Suchbegriffe für diese Börse: eigene aus der Config (`queries`) oder die allgemeinen."""
+        own = self.options.get("queries")
+        return list(own) if own else list(general)
 
     @abc.abstractmethod
     def search(self, query: str | None, region: Region) -> Iterator[Listing]:
