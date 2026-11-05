@@ -150,7 +150,8 @@ class Kleinanzeigen(Source):
         if not loc_id:
             log.warning("kleinanzeigen: Orts-ID für PLZ %s nicht gefunden", region.plz)
             return
-        radius = min(RADII, key=lambda r: abs(r - region.radius_km))
+        # Kleinanzeigen kennt nur feste Radien -> nächstgrößeren nehmen, genau filtern wir danach selbst
+        radius = next((r for r in RADII if r >= region.radius_km), RADII[-1])
         slug = _slug(query)
         # Nur in Rubriken suchen, in denen Betriebe verkauft werden (sonst: "Nachfolger"-Spielzeug, Bücher …)
         categories = self.options.get("categories", DEFAULT_CATEGORIES) or [None]
@@ -164,7 +165,7 @@ class Kleinanzeigen(Source):
                 kept = [
                     l for l in listings
                     if has_sale_intent(f"{l.title}\n{l.teaser or ''}", l.title)
-                    and (distance_km(l) is None or distance_km(l) <= radius)
+                    and (distance_km(l) is None or distance_km(l) <= region.radius_km)
                 ]
                 log.info("kleinanzeigen %r c%s Seite %d: %d Anzeigen, %d mit Verkaufsabsicht",
                          query, cat, page, len(listings), len(kept))

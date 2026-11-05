@@ -4,7 +4,7 @@
 region:
   # Mittelpunkt für die Umkreissuche (nexxt-change filtert selbst nach PLZ + Radius, max. 100 km)
   plz: "69250"            # Schönau (Odenwald)
-  radius_km: 50
+  radius_km: 70            # inkl. Karlsruhe, Darmstadt, Heilbronn, Worms
   # Für Börsen, die nur das Bundesland kennen (z.B. DUB). Leer = bundesweit.
   bundeslaender:
     - Baden-Württemberg
