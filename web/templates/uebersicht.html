@@ -1,0 +1,111 @@
+{% extends "basis.html" %}
+{% block stil %}
+ .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+ .tabs a{padding:5px 12px;border:1px solid var(--rand);border-radius:999px;background:var(--karte);color:var(--text);text-decoration:none;font-size:13px}
+ .tabs a .n{color:var(--matt);font-variant-numeric:tabular-nums;margin-left:4px}
+ .tabs a.aktiv{background:var(--text);border-color:var(--text);color:var(--karte)}
+ .tabs a.aktiv .n{color:inherit;opacity:.7}
+ .inserat{display:grid;gap:6px;grid-template-columns:minmax(0,1fr)}
+ .inserat.st-interessant{border-left:4px solid var(--gut)}
+ .inserat.st-kontaktiert{border-left:4px solid var(--akzent)}
+ .inserat.st-verworfen{opacity:.6}
+ .kopf{display:flex;gap:10px;align-items:flex-start}
+ .kopf h3{flex:1;min-width:0;margin:0;font-size:15px;line-height:1.35;overflow-wrap:anywhere}
+ .kopf h3 a{color:var(--text);text-decoration:none}
+ .kopf h3 a:hover{color:var(--akzent);text-decoration:underline}
+ .score{font-variant-numeric:tabular-nums;color:var(--akzent);font-weight:600;white-space:nowrap}
+ .fakten{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13px;color:var(--matt);overflow-wrap:anywhere}
+ .fakten b{color:var(--text);font-weight:600}
+ .km{font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
+ .teaser{margin:0;font-size:13.5px;overflow-wrap:anywhere}
+ .marken{display:flex;flex-wrap:wrap;gap:4px}
+ .grund{font-size:13px;color:var(--fehlt)}
+ details{font-size:13px;color:var(--matt)}
+ .aktionen{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-top:1px solid #eeeeea;padding-top:8px}
+ .aktionen form{margin:0}
+ .st{font-size:13px;padding:4px 10px}
+ .st.an.s-interessant{background:var(--gut);border-color:var(--gut);color:#fff}
+ .st.an.s-kontaktiert{background:var(--akzent);border-color:var(--akzent);color:#fff}
+ .st.an.s-verworfen{background:var(--fehlt);border-color:var(--fehlt);color:#fff}
+ .notiz{display:flex;gap:6px;flex:1 1 240px;min-width:0}
+ .notiz input{flex:1;min-width:0;font-size:13px}
+ .abschnitt{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--matt);margin:18px 0 8px}
+ .leer{background:var(--karte);border:1px dashed var(--rand);border-radius:8px;padding:24px;text-align:center;color:var(--matt)}
+{% endblock %}
+{% block inhalt %}
+<div class="zahlen">
+  <div class="kachel"><div class="w">{{ counts.offen }}</div><div class="b">offen</div></div>
+  <div class="kachel"><div class="w">{{ neu }}</div><div class="b">neu (3 Tage)</div></div>
+  <div class="kachel"><div class="w">{{ counts.interessant }}</div><div class="b">interessant</div></div>
+  <div class="kachel"><div class="w">{{ radius }} km</div><div class="b">um {{ plz }}</div></div>
+  {% if letzter_lauf %}<div class="kachel"><div class="w" style="font-size:15px;padding-top:5px">{{ letzter_lauf.started[8:10] }}.{{ letzter_lauf.started[5:7] }}. {{ letzter_lauf.started[11:16] }}</div><div class="b">letzter Lauf</div></div>{% endif %}
+</div>
+
+<nav class="tabs">
+  {% for id, label in tabs %}<a href="/?tab={{ id }}" class="{{ 'aktiv' if id == tab }}">{{ label }}<span class="n">{{ counts[id] }}</span></a>{% endfor %}
+</nav>
+
+<form class="filter" method="get" action="/">
+  <input type="hidden" name="tab" value="{{ tab }}">
+  <input type="search" name="q" value="{{ q }}" placeholder="Suchen …" style="flex:1 1 200px;min-width:0" aria-label="Suchen">
+  <select name="km" aria-label="Entfernung">{% for k in [20, 30, 40, 50, 60, 70, 100] if k <= radius or k == radius %}<option value="{{ k }}" {{ 'selected' if k == km }}>bis {{ k }} km</option>{% endfor %}</select>
+  <select name="preis" aria-label="Preis">
+    <option value="0">Preis egal</option>{% for p in [50000, 100000, 250000, 500000] %}<option value="{{ p }}" {{ 'selected' if p == preis }}>bis {{ (p/1000)|int }} Tsd €</option>{% endfor %}
+  </select>
+  <select name="quelle" aria-label="Börse"><option value="">alle Börsen</option>{% for s in quellen %}<option {{ 'selected' if s == quelle }}>{{ s }}</option>{% endfor %}</select>
+  <select name="sort" aria-label="Sortierung">
+    <option value="score" {{ 'selected' if sort == 'score' }}>Passung</option>
+    <option value="km" {{ 'selected' if sort == 'km' }}>Entfernung</option>
+    <option value="neu" {{ 'selected' if sort == 'neu' }}>Neueste</option>
+  </select>
+  <select name="unklar" aria-label="Ort unklar"><option value="1" {{ 'selected' if unklar == '1' }}>mit „Ort unklar“</option><option value="0" {{ 'selected' if unklar != '1' }}>ohne „Ort unklar“</option></select>
+  <button type="submit">Filtern</button>
+</form>
+
+{% if not items %}
+  <div class="leer">{% if tab == 'offen' %}Keine offenen Inserate mit diesen Filtern.{% else %}Noch nichts markiert.{% endif %}</div>
+{% endif %}
+
+{% set ns = namespace(unklar=None) %}
+{% for it in items %}
+  {% if tab == 'offen' and sort == 'score' and (it.km is none) != ns.unklar %}
+    {% set ns.unklar = it.km is none %}
+    <div class="abschnitt">{{ 'Ort unklar – Börse nennt nur das Bundesland' if ns.unklar else 'In der Nähe' }}</div>
+  {% endif %}
+  <article class="karte inserat st-{{ it.tab }}" id="k-{{ it.key }}">
+    <div class="kopf">
+      <h3>{% if it.new %}<span class="marke neu">NEU</span> {% endif %}<a href="{{ it.url }}" target="_blank" rel="noopener">{{ it.title }}</a></h3>
+      <span class="score" title="Passung zu deinen Suchbegriffen">{{ it.score }}</span>
+    </div>
+    <div class="fakten">
+      <span class="km">{{ it.distance }}</span><span>{{ it.location or '?' }}</span>
+      {% if it.price %}<span>Preis <b>{{ it.price }}</b></span>{% endif %}
+      {% if it.revenue %}<span>Umsatz <b>{{ it.revenue }}</b></span>{% endif %}
+      {% if it.earnings %}<span>Ergebnis <b>{{ it.earnings }}</b></span>{% endif %}
+      {% if it.employees %}<span>MA <b>{{ it.employees }}</b></span>{% endif %}
+    </div>
+    {% if it.reject %}<div class="grund">Ausgeblendet: {{ it.reject }}</div>{% endif %}
+    {% if it.teaser %}<p class="teaser">{{ it.teaser }}</p>{% endif %}
+    <div class="marken">
+      <span class="marke">{{ it.source }}</span>
+      {% if it.partner %}<span class="marke">{{ it.partner }}</span>{% endif %}
+      {% for m in it.matched %}<span class="marke kw">{{ m }}</span>{% endfor %}
+      {% if it.expose %}<a class="marke" href="{{ it.expose }}" target="_blank" rel="noopener">Exposé (PDF)</a>{% endif %}
+      {% if it.also %}<a class="marke" href="{{ it.also }}" target="_blank" rel="noopener">auch auf anderer Börse</a>{% endif %}
+    </div>
+    {% if it.description %}<details><summary>Beschreibung</summary><pre>{{ it.description }}</pre></details>{% endif %}
+    <div class="aktionen">
+      {% for s in ['interessant', 'kontaktiert', 'verworfen'] %}
+      <form method="post" action="/markieren">
+        <input type="hidden" name="key" value="{{ it.key }}"><input type="hidden" name="status" value="{{ s }}"><input type="hidden" name="zurueck" value="{{ zurueck }}">
+        <button class="st s-{{ s }} {{ 'an' if it.status == s }}" type="submit">{{ s|capitalize }}</button>
+      </form>
+      {% endfor %}
+      <form class="notiz" method="post" action="/notiz">
+        <input type="hidden" name="key" value="{{ it.key }}"><input type="hidden" name="zurueck" value="{{ zurueck }}">
+        <input name="note" value="{{ it.note }}" placeholder="Notiz …" aria-label="Notiz"><button type="submit">Speichern</button>
+      </form>
+    </div>
+  </article>
+{% endfor %}
+{% endblock %}

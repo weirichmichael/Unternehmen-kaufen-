@@ -4,6 +4,8 @@
     python -m dealscout list                # gespeicherte Treffer (mit aktueller Config neu bewertet)
     python -m dealscout report              # nur Report (HTML + CSV) neu erzeugen
     python -m dealscout mark KEY interessant --note "Anrufen"
+    python -m dealscout run --mail          # Tageslauf: wie run, plus Sammelmail bei neuen Treffern
+    python -m dealscout testmail            # Probemail mit den 3 besten aktuellen Treffern
 """
 
 from __future__ import annotations
@@ -37,6 +39,9 @@ def main(argv: list[str] | None = None) -> int:
     pr.add_argument("--source", action="append", help="nur diese Börse (mehrfach möglich): nexxt_change, dub")
     pr.add_argument("--refresh", action="store_true", help="Detailseiten auch für bekannte Inserate neu laden")
     pr.add_argument("--limit", type=int, default=30)
+    pr.add_argument("--mail", action="store_true", help="Sammelmail bei neuen passenden Inseraten (Gmail, .env)")
+
+    sub.add_parser("testmail", help="Probemail mit den 3 besten aktuellen Treffern an dich selbst")
 
     pl = sub.add_parser("list", help="gespeicherte Treffer anzeigen")
     pl.add_argument("--limit", type=int, default=30)
@@ -57,9 +62,16 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     cfg = load_config(cfg_path)
     store = Store(cfg.database)
+    from . import mail
+    mail.load_env(cfg_path.parent / ".env")
 
     if args.cmd == "run":
-        res = run(cfg, store, only=args.source, refresh=args.refresh)
+        run_id = store.run_started()
+        try:
+            res = run(cfg, store, only=args.source, refresh=args.refresh)
+        except Exception as e:
+            store.run_finished(run_id, error=str(e))
+            raise
         rows = evaluate(cfg, store)
         new_good = [r for r in rows if r.listing.key in res.new_keys and not r.reject]
         print(
@@ -69,8 +81,28 @@ def main(argv: list[str] | None = None) -> int:
         print_table(rows, res.new_keys, limit=args.limit)
         h, c = _write_reports(cfg, rows, res.new_keys)
         print(f"Report: {h}  |  {c}")
+        mailed, mail_error = 0, None
+        if args.mail:
+            try:
+                mailed = mail.notify(rows, res.new_keys)
+                print(f"Mail: {mailed} neue Angebote gemeldet" if mailed else "Mail: nichts Neues, keine Mail")
+            except Exception as e:
+                mail_error = f"Mail fehlgeschlagen: {e}"
+                print(mail_error, file=sys.stderr)
         for err in res.errors:
             print(f"WARNUNG: {err}", file=sys.stderr)
+        store.run_finished(run_id, seen=res.seen, new=len(new_good), mailed=mailed,
+                           error="; ".join(filter(None, [mail_error] + res.errors[:5])) or None)
+        return 1 if mail_error else 0
+
+    if args.cmd == "testmail":
+        rows = [r for r in evaluate(cfg, store) if not r.reject][:3]
+        if not rows:
+            print("Keine Treffer in der Datenbank – erst 'run' ausführen.", file=sys.stderr)
+            return 1
+        subject, text, body = mail.build(rows)
+        mail.send("TEST – " + subject, text, body)
+        print(f"Testmail an {mail.access()[0]} verschickt ({len(rows)} Inserate).")
         return 0
 
     if args.cmd == "list":

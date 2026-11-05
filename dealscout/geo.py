@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 GEONAMES_URL = "https://download.geonames.org/export/zip/DE.zip"
 
 # Toleranz je Genauigkeit: ein Landkreis-Mittelpunkt kann ~20 km vom Betrieb entfernt liegen
-TOLERANCE_KM = {"plz": 5, "ort": 5, "landkreis": 15, "text": 15, "plz-bereich": 40}
+TOLERANCE_KM = {"plz": 5, "ort": 5, "landkreis": 10, "text": 10, "plz-bereich": 30}
 
 # Landschafts-/Regionsnamen, die häufig statt eines Ortes genannt werden -> repräsentativer Ort
 REGION_ALIASES = {

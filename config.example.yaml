@@ -3,13 +3,11 @@
 
 region:
   # Mittelpunkt für die Umkreissuche (nexxt-change filtert selbst nach PLZ + Radius, max. 100 km)
-  plz: "69250"            # Schönau (Odenwald)
-  radius_km: 70            # inkl. Karlsruhe, Darmstadt, Heilbronn, Worms
+  plz: "12345"            # TODO: eigene PLZ eintragen
+  radius_km: 50
   # Für Börsen, die nur das Bundesland kennen (z.B. DUB). Leer = bundesweit.
-  bundeslaender:
+  bundeslaender:          # alle Bundesländer, die im Umkreis liegen
     - Baden-Württemberg
-    - Hessen            # Bergstraße / Odenwald
-    - Rheinland-Pfalz   # Ludwigshafen / Worms / Speyer
   # Inserate ohne konkreten Standort ("Deutschland") trotzdem anzeigen?
   include_unknown_location: false
   # Entfernung wird aus PLZ / Landkreis / Ort im Text berechnet (GeoNames-Daten, einmalig geladen).

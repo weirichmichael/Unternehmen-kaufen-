@@ -191,3 +191,4 @@ def write_html(rows: list[Row], path: Path, new_keys: set[str] | None = None, ti
 {''.join(cards)}
 </main><script>{_JS}</script></body></html>"""
     path.write_text(doc, encoding="utf-8")
+

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.weirich.dealscout</string>
+
+    <!-- Tageslauf: alle Börsen abfragen, Sammelmail bei neuen passenden Inseraten. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/michaelweirich/Projects/unternehmen_kaufen/venv/bin/python</string>
+        <string>-m</string><string>dealscout</string>
+        <string>run</string><string>--mail</string><string>--limit</string><string>0</string>
+    </array>
+
+    <!-- Jeden Tag um 17:30 Uhr Ortszeit, nach dem ZVG-Tageslauf (17:00). War der Mac aus oder im
+         Ruhezustand, holt launchd den Lauf beim nächsten Aufwachen nach. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>17</integer>
+        <key>Minute</key><integer>30</integer>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/michaelweirich/Projects/unternehmen_kaufen</string>
+    <key>StandardOutPath</key>
+    <string>/Users/michaelweirich/Projects/unternehmen_kaufen/logs/tageslauf.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/michaelweirich/Projects/unternehmen_kaufen/logs/tageslauf.log</string>
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

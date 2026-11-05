@@ -39,6 +39,16 @@ def build_sources(cfg: Config, http: PoliteSession, only: list[str] | None = Non
     return out
 
 
+_GEO_CACHE: dict[str, Geo] = {}
+
+
+def _geo(path: str) -> Geo:
+    """Geodaten nur einmal pro Prozess laden (die Weboberfläche bewertet bei jedem Aufruf neu)."""
+    if path not in _GEO_CACHE:
+        _GEO_CACHE[path] = Geo.load(path)
+    return _GEO_CACHE[path]
+
+
 class RegionCheck:
     """Region prüfen: erst über die berechnete Entfernung, sonst über Bundesland/Umkreis der Börse."""
 
@@ -48,7 +58,7 @@ class RegionCheck:
         self.home = None
         if cfg.region.plz:
             try:
-                self.geo = Geo.load(cfg.geo_cache)
+                self.geo = _geo(cfg.geo_cache)
                 self.home = self.geo.plz_coord(cfg.region.plz)
                 if not self.home:
                     log.warning("PLZ %s nicht in den GeoNames-Daten – keine Entfernungsberechnung", cfg.region.plz)
@@ -134,10 +144,16 @@ def mark_duplicates(listings: list[Listing]) -> None:
             if li.source == lj.source:
                 continue
             n = min(len(ti), len(tj), 70)
-            if n >= 20 and (ti[:n] == tj[:n] or SequenceMatcher(None, ti, tj).ratio() > 0.9):
-                li.extra["auch_auf"] = lj.url
-                lj.extra.setdefault("auch_auf", li.url)
-                break
+            if n < 20:
+                continue
+            if ti[:n] != tj[:n]:
+                # schnelle Vorfilter zuerst – ratio() allein kostet bei ~300 Inseraten Sekunden
+                sm = SequenceMatcher(None, ti, tj)
+                if not (sm.real_quick_ratio() > 0.9 and sm.quick_ratio() > 0.9 and sm.ratio() > 0.9):
+                    continue
+            li.extra["auch_auf"] = lj.url
+            lj.extra.setdefault("auch_auf", li.url)
+            break
 
 
 def reparse_amounts(lst: Listing) -> Listing:

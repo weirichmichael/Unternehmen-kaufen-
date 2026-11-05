@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.weirich.dealscout-web</string>
+
+    <!-- Weboberfläche dauerhaft, nur auf dem Mac selbst (127.0.0.1:8001). Von unterwegs erreichbar
+         ausschließlich über das private Tailscale-Netz (tailscale serve), keine Portfreigabe. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/michaelweirich/Projects/unternehmen_kaufen/venv/bin/uvicorn</string>
+        <string>web.app:app</string>
+        <string>--host</string><string>127.0.0.1</string>
+        <string>--port</string><string>8001</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/michaelweirich/Projects/unternehmen_kaufen</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/michaelweirich/Projects/unternehmen_kaufen/logs/web.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/michaelweirich/Projects/unternehmen_kaufen/logs/web.log</string>
+</dict>
+</plist>

@@ -1,0 +1,27 @@
+{% extends "basis.html" %}
+{% block titel %}Status – Unternehmen kaufen{% endblock %}
+{% block inhalt %}
+<div class="zahlen">
+  <div class="kachel"><div class="w">{{ total }}</div><div class="b">Inserate gespeichert</div></div>
+  <div class="kachel"><div class="w">{{ radius }} km</div><div class="b">um {{ plz }}</div></div>
+  {% for s in by_source %}<div class="kachel"><div class="w">{{ s.n }}</div><div class="b">{{ s.source }}</div></div>{% endfor %}
+</div>
+<div class="karte">
+  <h2>Tagesläufe</h2>
+  {% if runs %}
+  <table>
+    <tr><th>Start</th><th>Ende</th><th class="num">gesehen</th><th class="num">neu passend</th><th class="num">gemailt</th><th>Hinweise</th></tr>
+    {% for r in runs %}
+    <tr>
+      <td>{{ r.started[8:10] }}.{{ r.started[5:7] }}. {{ r.started[11:16] }}</td>
+      <td>{% if r.finished %}{{ r.finished[11:16] }}{% else %}<span style="color:var(--hinweis)">läuft / abgebrochen</span>{% endif %}</td>
+      <td class="num">{{ r.seen if r.seen is not none else '–' }}</td>
+      <td class="num">{{ r.new if r.new is not none else '–' }}</td>
+      <td class="num">{{ r.mailed if r.mailed is not none else '–' }}</td>
+      <td class="matt" style="font-size:12px">{{ r.error or '' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="matt">Noch kein Tageslauf protokolliert.</p>{% endif %}
+</div>
+{% endblock %}

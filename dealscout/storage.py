@@ -22,6 +22,15 @@ CREATE TABLE IF NOT EXISTS listings (
     status         TEXT NOT NULL DEFAULT 'neu',
     note           TEXT
 );
+CREATE TABLE IF NOT EXISTS runs (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    started   TEXT NOT NULL,
+    finished  TEXT,
+    seen      INTEGER,
+    new       INTEGER,
+    mailed    INTEGER,
+    error     TEXT
+);
 """
 
 
@@ -77,6 +86,22 @@ class Store:
         )
         self.db.commit()
         return cur.rowcount > 0
+
+    def run_started(self) -> int:
+        cur = self.db.execute("INSERT INTO runs (started) VALUES (?)", (_now(),))
+        self.db.commit()
+        return cur.lastrowid
+
+    def run_finished(self, run_id: int, seen: int | None = None, new: int | None = None,
+                     mailed: int | None = None, error: str | None = None) -> None:
+        self.db.execute(
+            "UPDATE runs SET finished = ?, seen = ?, new = ?, mailed = ?, error = ? WHERE id = ?",
+            (_now(), seen, new, mailed, error, run_id),
+        )
+        self.db.commit()
+
+    def runs(self, limit: int = 20) -> list[sqlite3.Row]:
+        return self.db.execute("SELECT * FROM runs ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
 
     def all(self) -> list[sqlite3.Row]:
         return self.db.execute("SELECT * FROM listings ORDER BY first_seen DESC").fetchall()
