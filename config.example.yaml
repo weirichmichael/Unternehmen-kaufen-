@@ -26,7 +26,6 @@ search:
     - Hausmeister
     - Hausmeisterservice
     - Gebäudeservice
-    - Gebäudereinigung
     - Facility
   # Zusätzlich ALLE Inserate im Umkreis holen (nur Börsen mit Umkreissuche).
   # So finden wir auch Branchen, an die wir noch nicht gedacht haben.
@@ -41,12 +40,10 @@ scoring:
     mietverwaltung: 8
     hausmeister: 10
     gebäudeservice: 8
-    gebäudereinigung: 6
     facility: 6
     winterdienst: 4
     grünpflege: 3
     gartenpflege: 3
-    reinigung: 3
     wartung: 2
     dienstleistung: 1
     stammkunden: 2
@@ -56,6 +53,13 @@ scoring:
   # Inserate mit diesen Begriffen ausblenden
   exclude:
     - insolvenz
+  # Branchen ausblenden, wenn der Begriff im TITEL steht – außer einer der "unless"-Begriffe steht auch drin
+  exclude_title:
+    - terms: [gebäudereinigung, gebäude- und fassadenreinigung, fassadenreinigung, glasreinigung,
+              unterhaltsreinigung, reinigungsunternehmen, reinigungsbetrieb, reinigungsfirma,
+              reinigungsservice, objektspezifische reinigung, putzfirma]
+      unless: [hausmeister, hausverwaltung, immobilienverwaltung, facility, kanalreinigung, rohrreinigung]
+      reason: "Gebäudereinigung (ausgeschlossen)"
   # Mindest-Score (0 = alles in der Region zeigen, nur sortiert)
   min_score: 0
 
@@ -91,7 +95,6 @@ sources:
       - kundenstamm
       - hausverwaltung
       - hausmeister
-      - gebäudereinigung
 
 fetch_details: true      # Detailseite für neue Inserate laden (Preis, Umsatz, Beschreibung)
 delay_seconds: 1.5       # Pause zwischen Anfragen – bitte nicht runterdrehen

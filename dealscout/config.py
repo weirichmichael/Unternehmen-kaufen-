@@ -41,6 +41,7 @@ def load_config(path: str | Path) -> Config:
     criteria = Criteria(
         keywords={str(k): float(v) for k, v in (sc.get("keywords") or {}).items()},
         exclude=list(sc.get("exclude") or []),
+        exclude_title=list(sc.get("exclude_title") or []),
         min_score=float(sc.get("min_score", 0)),
         price_max=flt.get("price_max"),
         revenue_min=flt.get("revenue_min"),

@@ -139,3 +139,11 @@ def test_wanted_ads_are_rejected():
     ]
     assert all(is_wanted_ad(l) for l in wanted)
     assert not any(is_wanted_ad(l) for l in offers)
+
+
+def test_exclude_title_with_exception():
+    rule = {"terms": ["gebäudereinigung"], "unless": ["hausmeister"], "reason": "Gebäudereinigung (ausgeschlossen)"}
+    c = Criteria(exclude_title=[rule])
+    assert rejection_reason(_l(title="Gebäudereinigung zu verkaufen"), c) == "Gebäudereinigung (ausgeschlossen)"
+    assert rejection_reason(_l(title="Hausmeisterservice / Gebäudereinigung"), c) is None
+    assert rejection_reason(_l(title="Hausverwaltung", teaser="inkl. Treppenhausreinigung"), c) is None

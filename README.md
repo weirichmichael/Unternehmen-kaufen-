@@ -68,6 +68,8 @@ Status: `neu`, `interessant`, `kontaktiert`, `verworfen` (verworfene werden im R
 - **Filter**: `filters.price_max` usw. schließen nur aus, wenn der Wert *sicher* drüber liegt
   (Inserate ohne Preisangabe bleiben drin).
 - `scoring.exclude`: Begriffe, die ein Inserat ausblenden (z.B. „insolvenz").
+- `scoring.exclude_title`: ganze Branchen ausblenden, wenn ein Begriff im Titel steht – mit Ausnahmen
+  (Standard: reine Gebäudereinigung raus, „Hausmeisterservice / Gebäudereinigung“ bleibt).
 
 Bewertung und Filter werden bei `list`/`report` immer mit der aktuellen
 `config.yaml` neu berechnet – Config ändern, `report` laufen lassen, fertig.

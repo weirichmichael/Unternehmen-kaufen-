@@ -19,6 +19,9 @@ def norm(text: str) -> str:
 class Criteria:
     keywords: dict[str, float] = field(default_factory=dict)  # Begriff -> Gewicht
     exclude: list[str] = field(default_factory=list)           # Ausschlussbegriffe
+    # Branchen ausblenden, wenn der Begriff im Titel steht – außer einer der "unless"-Begriffe auch
+    # (z.B. Reinigung raus, aber "Hausmeisterservice / Gebäudereinigung" bleibt)
+    exclude_title: list[dict] = field(default_factory=list)
     price_max: float | None = None
     revenue_min: float | None = None
     revenue_max: float | None = None
@@ -86,6 +89,13 @@ def rejection_reason(listing: Listing, c: Criteria) -> str | None:
     if is_wanted_ad(listing):
         return "Kaufgesuch, kein Angebot"
     text = norm(listing.text())
+    title = norm(listing.title)
+    for rule in c.exclude_title:
+        terms = [norm(t) for t in rule.get("terms", [])]
+        unless = [norm(t) for t in rule.get("unless", [])]
+        hit = next((t for t in terms if t in title), None)
+        if hit and not any(u in title for u in unless):
+            return rule.get("reason") or f"Branche '{hit}' ausgeschlossen"
     for ex in c.exclude:
         if re.search(r"\b" + re.escape(norm(ex)), text):
             return f"Ausschlussbegriff '{ex}'"
