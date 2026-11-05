@@ -1,0 +1,72 @@
+# dealscout – Konfiguration
+# Kopieren nach config.yaml und anpassen:  cp config.example.yaml config.yaml
+
+region:
+  # Mittelpunkt für die Umkreissuche (nexxt-change filtert selbst nach PLZ + Radius, max. 100 km)
+  plz: "72555"            # TODO: eigene PLZ eintragen
+  radius_km: 50
+  # Für Börsen, die nur das Bundesland kennen (z.B. DUB). Leer = bundesweit.
+  bundeslaender:
+    - Baden-Württemberg
+  # Inserate ohne konkreten Standort ("Deutschland") trotzdem anzeigen?
+  include_unknown_location: false
+
+search:
+  # Suchbegriffe, die bei jeder Börse abgefragt werden
+  queries:
+    - Hausverwaltung
+    - Immobilienverwaltung
+    - WEG-Verwaltung
+    - Hausmeister
+    - Hausmeisterservice
+    - Gebäudeservice
+    - Gebäudereinigung
+    - Facility
+  # Zusätzlich ALLE Inserate im Umkreis holen (nur Börsen mit Umkreissuche).
+  # So finden wir auch Branchen, an die wir noch nicht gedacht haben.
+  browse_all_in_radius: true
+
+scoring:
+  # Begriff: Gewicht. Treffer im Titel zählen doppelt.
+  keywords:
+    hausverwaltung: 10
+    immobilienverwaltung: 10
+    weg-verwaltung: 10
+    mietverwaltung: 8
+    hausmeister: 10
+    gebäudeservice: 8
+    gebäudereinigung: 6
+    facility: 6
+    winterdienst: 4
+    grünpflege: 3
+    gartenpflege: 3
+    reinigung: 3
+    wartung: 2
+    dienstleistung: 1
+    stammkunden: 2
+    wiederkehrend: 3
+    verträge: 2
+    nachfolge: 1
+  # Inserate mit diesen Begriffen ausblenden
+  exclude:
+    - insolvenz
+  # Mindest-Score (0 = alles in der Region zeigen, nur sortiert)
+  min_score: 0
+
+filters:
+  price_max: 500000      # EUR; null = egal
+  revenue_min: null
+  revenue_max: null
+
+sources:
+  nexxt_change:
+    enabled: true
+    max_pages: 10        # 10 Inserate pro Seite
+  dub:
+    enabled: true
+    max_pages: 3         # 18 Inserate pro Seite, Suche ist unscharf
+
+fetch_details: true      # Detailseite für neue Inserate laden (Preis, Umsatz, Beschreibung)
+delay_seconds: 1.5       # Pause zwischen Anfragen – bitte nicht runterdrehen
+database: data/dealscout.sqlite
+report_dir: reports
