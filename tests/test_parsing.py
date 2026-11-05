@@ -14,6 +14,8 @@ from dealscout.parsing import parse_amount_range, parse_german_date
         ("über 2,5 Mio. Euro", (2_500_000, None)),
         ("bis 50 Tsd. Euro", (None, 50_000)),
         ("2.800.000 € VHB", (2_800_000, 2_800_000)),
+        ("245.000.00 VHB €", (245_000, 245_000)),
+        ("Bis 249.999,00 €", (None, 249_999)),
         ("Nicht veröffentlicht", (None, None)),
         (None, (None, None)),
     ],

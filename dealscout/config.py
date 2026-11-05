@@ -19,6 +19,7 @@ class Config:
     delay_seconds: float = 1.5
     database: str = "data/dealscout.sqlite"
     report_dir: str = "reports"
+    geo_cache: str = "data/geo"
 
     @property
     def region(self) -> Region:
@@ -33,6 +34,7 @@ def load_config(path: str | Path) -> Config:
         radius_km=int(r.get("radius_km", 50)),
         bundeslaender=list(r.get("bundeslaender") or []),
         include_unknown_location=bool(r.get("include_unknown_location", False)),
+        unknown_distance=str(r.get("unknown_distance", "keep")),
     )
     sc = raw.get("scoring") or {}
     flt = raw.get("filters") or {}

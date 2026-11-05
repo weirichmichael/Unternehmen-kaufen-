@@ -36,6 +36,8 @@ def parse_amount_range(text: str | None) -> tuple[float | None, float | None]:
     if not text:
         return None, None
     t = text.lower().replace("\xa0", " ")
+    # "245.000.00" (Punkt statt Komma vor den Cents) -> "245.000"
+    t = re.sub(r"(\d{1,3}(?:\.\d{3})+)[.,]\d{2}(?!\d)", r"\1", t)
     # Jede Zahl mit ihrer (optionalen) Einheit: "500 tsd. - 2,5 mio." / "250 - 500 tsd."
     tokens = re.findall(rf"({_NUM})\s*(tsd|tausend|mio|millionen|million|mrd)?\b", t)
     if not tokens:

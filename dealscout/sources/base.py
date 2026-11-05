@@ -14,6 +14,8 @@ class Region:
     radius_km: int = 50
     bundeslaender: list[str] = field(default_factory=list)
     include_unknown_location: bool = False
+    # Inserate, bei denen nur das Bundesland bekannt ist: "keep" (anzeigen, markiert) oder "drop"
+    unknown_distance: str = "keep"
 
 
 class Source(abc.ABC):

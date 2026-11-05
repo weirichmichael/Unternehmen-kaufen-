@@ -30,8 +30,17 @@ def _range(lo: float | None, hi: float | None, raw: str | None) -> str:
     return f"{_eur(lo)}–{_eur(hi)}"
 
 
+def _distance(l) -> str:
+    km = l.extra.get("entfernung_km")
+    if km is not None:
+        exact = (l.extra.get("ort_genauigkeit") or "").startswith(("plz", "ort"))
+        return f"{'' if exact else '~'}{km} km"
+    return "Ort unklar"
+
+
 def print_table(rows: list[Row], new_keys: set[str] | None = None, limit: int = 30) -> None:
-    shown = [r for r in rows if not r.reject and r.status != "verworfen"][:limit]
+    shown = [r for r in rows if not r.reject and r.status != "verworfen"]
+    shown = sorted(shown, key=lambda r: r.listing.extra.get("entfernung_km") is None)[:limit]
     if not shown:
         print("Keine passenden Inserate.")
         return
@@ -40,7 +49,7 @@ def print_table(rows: list[Row], new_keys: set[str] | None = None, limit: int = 
         flag = "NEU " if new_keys and l.key in new_keys else "    "
         print(
             f"{flag}[{l.score:5.1f}] {l.title[:70]}\n"
-            f"       {l.source} | {l.location or '?'} | Umsatz {_range(l.revenue_min, l.revenue_max, l.revenue) or '?'}"
+            f"       {l.source} | {l.location or '?'} ({_distance(l)}) | Umsatz {_range(l.revenue_min, l.revenue_max, l.revenue) or '?'}"
             f" | Preis {_range(l.price_min, l.price_max, l.price) or '?'} | MA {l.employees or '?'}"
             f" | {r.status}\n"
             f"       {', '.join(l.matched) or '-'}  ->  {l.url}\n"
@@ -50,7 +59,7 @@ def print_table(rows: list[Row], new_keys: set[str] | None = None, limit: int = 
 CSV_FIELDS = [
     "score", "status", "title", "source", "location", "industry", "employees",
     "revenue", "earnings", "price", "price_min", "price_max", "revenue_min", "revenue_max",
-    "date", "first_seen", "matched", "regionalpartner", "url", "auch_auf", "expose_pdf", "note", "reject",
+    "date", "first_seen", "matched", "entfernung_km", "ort_genauigkeit", "regionalpartner", "url", "auch_auf", "expose_pdf", "note", "reject",
 ]
 
 
@@ -81,6 +90,8 @@ def write_csv(rows: list[Row], path: Path) -> None:
                     "first_seen": r.first_seen,
                     "matched": ", ".join(l.matched),
                     "regionalpartner": l.extra.get("regionalpartner"),
+                    "entfernung_km": l.extra.get("entfernung_km"),
+                    "ort_genauigkeit": l.extra.get("ort_genauigkeit"),
                     "url": l.url,
                     "auch_auf": l.extra.get("auch_auf"),
                     "expose_pdf": l.extra.get("expose_pdf"),
@@ -102,7 +113,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 16px}h1{font-size:22px;margin:0
 .meta{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--muted);font-size:13px;margin-bottom:6px}.meta b{color:var(--fg);font-weight:600}
 .teaser{font-size:14px;margin:6px 0}.chips{display:flex;flex-wrap:wrap;gap:4px}.chip{background:var(--chip);color:var(--accent);border-radius:99px;padding:1px 8px;font-size:12px}
 .score{float:right;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}.new{color:var(--new);font-weight:700;font-size:12px;margin-right:6px}
-.rej{opacity:.55}.why{color:var(--new);font-size:12px}details{margin-top:6px;font-size:13px;color:var(--muted)}details pre{white-space:pre-wrap;font:inherit;color:var(--fg)}
+.section{font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:22px 0 10px}.rej{opacity:.55}.why{color:var(--new);font-size:12px}details{margin-top:6px;font-size:13px;color:var(--muted)}details pre{white-space:pre-wrap;font:inherit;color:var(--fg)}
 """
 
 _JS = """
@@ -118,7 +129,20 @@ def write_html(rows: list[Row], path: Path, new_keys: set[str] | None = None, ti
     e = html.escape
     good = sum(1 for r in rows if not r.reject and r.status != "verworfen")
     cards = []
+    # Erst die verorteten Treffer, dann die mit unbekanntem Ort (nur Bundesland), dann ausgeblendete
+    def group(r) -> int:
+        if r.reject or r.status == "verworfen":
+            return 2
+        return 1 if r.listing.extra.get("entfernung_km") is None and r.listing.extra.get("ort_genauigkeit") else 0
+    rows = sorted(rows, key=group)  # stabil: Score-Reihenfolge bleibt innerhalb der Gruppen
+    headings = {0: "In der Nähe", 1: "Ort unklar – Börse nennt nur das Bundesland", 2: ""}
+    current = None
     for r in rows:
+        g = group(r)
+        if g != current:
+            current = g
+            if headings[g]:
+                cards.append(f"<h2 class='section' data-group='{g}'>{headings[g]}</h2>")
         l = r.listing
         rej = bool(r.reject) or r.status == "verworfen"
         meta = [
@@ -132,8 +156,7 @@ def write_html(rows: list[Row], path: Path, new_keys: set[str] | None = None, ti
         meta.append(f"<span>MA <b>{e(l.employees or '?')}</b></span>")
         if l.extra.get("regionalpartner"):
             meta.append(f"<span>betreut von <b>{e(l.extra['regionalpartner'])}</b></span>")
-        if l.extra.get("entfernung"):
-            meta.append(f"<span>{e(l.extra['entfernung'])} entfernt</span>")
+        meta.append(f"<span title='{e(l.extra.get('ort_genauigkeit') or '')}'>{e(_distance(l))}</span>")
         if l.date:
             meta.append(f"<span>vom {e(l.date)}</span>")
         meta.append(f"<span>Status: {e(r.status)}</span>")

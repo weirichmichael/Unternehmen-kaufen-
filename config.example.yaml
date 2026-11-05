@@ -12,6 +12,10 @@ region:
     - Rheinland-Pfalz   # Ludwigshafen / Worms / Speyer
   # Inserate ohne konkreten Standort ("Deutschland") trotzdem anzeigen?
   include_unknown_location: false
+  # Entfernung wird aus PLZ / Landkreis / Ort im Text berechnet (GeoNames-Daten, einmalig geladen).
+  # Kennt eine Börse nur das Bundesland und steht im Text kein Ort:
+  #   keep = trotzdem anzeigen (markiert als "Ort unklar"), drop = ausblenden
+  unknown_distance: keep
 
 search:
   # Suchbegriffe, die bei jeder Börse abgefragt werden

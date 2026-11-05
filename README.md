@@ -58,7 +58,12 @@ Status: `neu`, `interessant`, `kontaktiert`, `verworfen` (verworfene werden im R
 
 ## Bewertung
 
-- **Region**: nexxt-change filtert selbst per PLZ/Umkreis; bei DUB zählt das Bundesland.
+- **Region / Entfernung**: Für jedes Inserat wird die Entfernung zur eigenen PLZ berechnet
+  (GeoNames-PLZ-Daten, beim ersten Lauf nach `data/geo/` geladen). Verortet wird über
+  PLZ → Landkreis → Ort im Standortfeld → PLZ-Bereich → Ort/Region im Text („Raum Mannheim“,
+  „Rhein-Main“, „am Bodensee“). Was weiter als `radius_km` (+ Toleranz bei ungenauer Verortung)
+  entfernt ist, fliegt raus. Kennt die Börse nur das Bundesland, landet das Inserat im
+  Report-Abschnitt „Ort unklar“ (oder wird mit `unknown_distance: drop` ausgeblendet).
 - **Score**: Summe der Gewichte aus `scoring.keywords`, die im Titel/Branche/Text vorkommen (Titel zählt doppelt).
 - **Filter**: `filters.price_max` usw. schließen nur aus, wenn der Wert *sicher* drüber liegt
   (Inserate ohne Preisangabe bleiben drin).
