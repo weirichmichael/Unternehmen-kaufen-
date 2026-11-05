@@ -118,3 +118,24 @@ def test_scoring_and_rejection():
     assert rejection_reason(l, c) is None
     assert rejection_reason(_l(title="x", price_min=400_000), c)
     assert rejection_reason(_l(title="x", teaser="aus Insolvenz"), c)
+
+
+def test_wanted_ads_are_rejected():
+    from dealscout.scoring import is_wanted_ad
+
+    wanted = [
+        _l(title="Handwerksbetrieb oder Hausverwaltung zur Übernahme / Beteiligung",
+           description="Handwerksbetrieb oder Hausverwaltung zur Übernahme / Beteiligung gesucht\n"
+                       "Wir suchen im Raum Mannheim einen bestehenden Handwerksbetrieb."),
+        _l(title="Hausverwaltung", description="Wir suchen eine Hausverwaltung zum Kauf."),
+        _l(title="Gebäudereinigung zum Kauf gesucht"),
+    ]
+    offers = [
+        _l(title="Hausmeisterservice Raum Riedstadt sucht Nachfolger"),
+        _l(title="Reparaturwerkstatt", description="Wir suchen einen Nachfolger für unser Einzelunternehmen."),
+        _l(title="Nachfolger für Buchhandlung gesucht"),
+        _l(title="Gebäudereinigung", description="Käufer zur Übernahme unseres Dienstleistungsservices gesucht"),
+        _l(title="Maler und Lackierbetrieb", description="Für meinen Betrieb suche ich einen Nachfolger."),
+    ]
+    assert all(is_wanted_ad(l) for l in wanted)
+    assert not any(is_wanted_ad(l) for l in offers)

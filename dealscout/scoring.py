@@ -54,8 +54,37 @@ def in_region(listing: Listing, region: Region, source_filtered_by_radius: bool)
     return any(norm(bl) in loc for bl in region.bundeslaender)
 
 
+# Kaufgesuche erkennen: jemand sucht einen *Betrieb* (nicht: einen *Nachfolger* / Käufer).
+_BUSINESS = (
+    r"(?:handwerks)?betrieb|unternehmen|firma|gmbh|ug\b|hausverwaltung|immobilienverwaltung|"
+    r"hausmeister\w*|gebäudereinigung|reinigungsfirma|verwaltung|kanzlei|praxis|geschäft|beteiligung"
+)
+_WANTED_PATTERNS = [
+    # "Wir suchen (im Raum X) einen bestehenden Handwerksbetrieb"
+    rf"\b(?:wir suchen|suchen wir|ich suche|suche ich|suchen|suche|sucht)\b[^.!?\n]{{0,80}}?"
+    rf"\b(?:einen|eine|ein|nach)\b\s+(?:\w+\s+){{0,3}}?(?:{_BUSINESS})",
+    # "Hausverwaltung zur Übernahme / Beteiligung gesucht", "zum Kauf gesucht"
+    r"\b(?:zur übernahme|zum kauf|zur beteiligung|übernahme|kauf|beteiligung)\b[^.!?\n]{0,25}\bgesucht\b",
+    r"\bkaufgesuch\b|\bkaufe (?:ihr|ihre|ihren|dein|deine|deinen)\b",
+]
+_WANTED = re.compile("|".join(_WANTED_PATTERNS), re.I)
+_SELLER = re.compile(r"\bnachfolger(?:in|/-?in)?\b[^.!?\n]{0,15}\bgesucht|\b(?:suche|suchen|sucht)\b[^.!?\n]{0,40}\b(?:nachfolger|käufer|übernehmer)", re.I)
+
+
+def is_wanted_ad(listing: Listing) -> bool:
+    """True, wenn das Inserat ein Kaufgesuch ist (Titel + Anfang der Beschreibung)."""
+    head = "\n".join(p for p in (listing.title, listing.teaser, (listing.description or "")[:400]) if p)
+    m = _WANTED.search(head)
+    if not m:
+        return False
+    # "Wir suchen einen Nachfolger für unser Unternehmen" ist ein Angebot
+    return not _SELLER.search(head[: m.end() + 40])
+
+
 def rejection_reason(listing: Listing, c: Criteria) -> str | None:
     """Gibt einen Grund zurück, wenn das Inserat nicht passt, sonst None."""
+    if is_wanted_ad(listing):
+        return "Kaufgesuch, kein Angebot"
     text = norm(listing.text())
     for ex in c.exclude:
         if re.search(r"\b" + re.escape(norm(ex)), text):
