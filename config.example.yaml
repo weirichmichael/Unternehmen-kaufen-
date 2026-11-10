@@ -88,6 +88,11 @@ scoring:
   # Inserate mit diesen Begriffen ausblenden
   exclude:
     - insolvenz
+    - werbeanlage
+    - leuchtreklame
+    - 'jetzt anfragen'
+    - 'wir übernehmen das'
+    - 'freie kapazitäten' 
   # Branchen ausblenden, wenn ein Begriff im Titel (bzw. "in") steht – außer einer der "unless"-Begriffe steht im Titel
   exclude_title:
     # Meisterpflicht (Handwerksordnung Anlage A): als Quereinsteiger nur mit angestelltem Meister möglich
@@ -110,7 +115,8 @@ scoring:
     - terms: [arzt, ärzt, zahnarzt, praxis, apotheke, physiotherap, therapie, pflegedienst, pflegeeinrichtung,
               intensivpflege, tagespflege, kanzlei, steuerber, ingenieur, architekt, labor, software, saas,
               medizintechnik, maschinenbau, fertigung, produktion, hersteller, großhandel, spedition, taxi,
-              hotel, makler, versicherung, finanz, arbeitsschutz, arbeitssicherheit]
+              hotel, makler, versicherung, finanz, arbeitsschutz, arbeitssicherheit,
+              amazon, fba, onlineshop, online-shop, e-commerce]
       in: [title, industry]
       unless: [hausmeister, rohrreinigung, kanalreinigung, hausverwaltung, immobilienverwaltung, weg-verwaltung]
       reason: "zu speziell"
@@ -176,6 +182,7 @@ scoring:
       'meisterbrief|meistertitel|meisterpflicht|meister erforderlich': -8
       'fachkenntnisse (sind )?(erforderlich|notwendig|vorausgesetzt)|branchenerfahrung (ist )?(erforderlich|notwendig|vorausgesetzt)': -5
       'nur für (fachleute|branchenkenner|fachbetriebe)|ausschließlich (an )?(fachleute|wettbewerber|branchen)': -6
+      '(vorkenntnisse|erfahrung|fachkenntnis\w*)[^.]{0,30}(ein muss|voraussetzung|zwingend|unbedingt)': -6
       'inhaber (ist )?(voll )?(im )?(tagesgeschäft|operativ) (eingebunden|tätig)': -2
 
   # Größe: 2–20 Mitarbeiter = genug Struktur für Prozesse, noch überschaubar

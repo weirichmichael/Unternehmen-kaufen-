@@ -113,3 +113,8 @@ def test_biz_trade():
 def test_nexxt_regionalpartner():
     l = nexxt_detail(NEXXT_PARTNER, Listing(source="nexxt-change", source_id="1", url="u", title="t"))
     assert l.extra["regionalpartner"] == "IHK Nordschwarzwald"
+
+
+def test_kleinanzeigen_service_offer_is_not_a_sale():
+    assert not kleinanzeigen.has_sale_intent("Winterdienst? Wir übernehmen das!", "Winterdienst? Wir übernehmen das!")
+    assert kleinanzeigen.has_sale_intent("Schlüsseldienst zu übernehmen", "Schlüsseldienst zu übernehmen")

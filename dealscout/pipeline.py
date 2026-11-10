@@ -14,6 +14,7 @@ from .models import Listing
 from .parsing import parse_amount, parse_amount_range
 from .scoring import in_region, norm, rejection_reason, score
 from .sources import SOURCES, Source
+from .sources.kleinanzeigen import has_sale_intent
 from .storage import Store
 
 log = logging.getLogger(__name__)
@@ -182,6 +183,8 @@ def evaluate(cfg: Config, store: Store) -> list[Row]:
         radius = lst.extra.get("umkreis") == _radius_tag(cfg)  # Börse hat bereits Umkreis gefiltert
         score(lst, cfg.criteria)
         reason = region.reason(lst, radius)
+        if not reason and lst.source == "kleinanzeigen" and not has_sale_intent(f"{lst.title}\n{lst.teaser or ''}", lst.title):
+            reason = "kein Verkaufsangebot"  # Regeln für Verkaufsabsicht wirken so auch rückwirkend
         reason = reason or rejection_reason(lst, cfg.criteria)
         rows.append(Row(lst, r["status"], r["note"], r["first_seen"], reason))
     mark_duplicates([r.listing for r in rows if not r.reject])

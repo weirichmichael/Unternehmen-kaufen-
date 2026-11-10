@@ -47,8 +47,9 @@ def _signal_hits(text: str, patterns: dict[str, float], negatable: bool) -> tupl
     total, hits = 0.0, []
     for pat, weight in patterns.items():
         for m in re.finditer(norm(pat), text):  # gleiche Normalisierung wie der Text (ß -> ss)
-            if negatable and _NEGATION.search(text[max(0, m.start() - 40):m.start()]):
-                continue
+            if negatable and (_NEGATION.search(text[max(0, m.start() - 40):m.start()])
+                              or re.search(r"\b(nicht|kein\w*|ohne)\b", m.group(0))):
+                continue  # "nicht erforderlich", "keine Vorkenntnisse … Voraussetzung"
             total += weight
             hits.append(m.group(0))
             break

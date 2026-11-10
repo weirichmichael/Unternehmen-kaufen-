@@ -29,7 +29,7 @@ DEFAULT_CATEGORIES = (277, 298)
 # Formulierungen, die auf Verkauf/Übergabe eines Betriebs hindeuten
 SALE_INTENT = re.compile(
     r"abzugeben|abgabe|zu verkaufen|verkaufe|zu übergeben|übergabe|nachfolge|nachfolger|"
-    r"übernahme|übernehmen|firmenverkauf|unternehmensverkauf|geschäftsaufgabe|geschäftsauflösung|"
+    r"übernahme|zu übernehmen|firmenverkauf|unternehmensverkauf|geschäftsaufgabe|geschäftsauflösung|"
     r"kundenstamm|ablöse|ruhestand|aus altersgründen|gesellschaftsanteile|geschäftsanteile",
     re.I,
 )
