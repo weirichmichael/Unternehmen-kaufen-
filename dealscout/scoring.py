@@ -27,6 +27,12 @@ class Criteria:
     require_target: bool = False
     # Hinweise zum Einstieg je Branche: [{terms: [...], note: "zulassungsfrei"}, ...] – erster Treffer zählt
     branch_notes: list[dict] = field(default_factory=list)
+    # Teilbewertungen aus dem Inseratstext: {"hebel": {muster: gewicht}, "einstieg": {...}, "huerden": {...}}
+    # Muster sind reguläre Ausdrücke (Kleinschreibung). Hürden zählen nicht, wenn kurz davor
+    # "nicht", "kein" oder "ohne" steht ("Branchenerfahrung nicht zwingend erforderlich").
+    signals: dict[str, dict[str, float]] = field(default_factory=dict)
+    # Mitarbeiterzahl -> Punkte, z.B. [{"min": 2, "max": 20, "points": 4}, ...]
+    size_points: list[dict] = field(default_factory=list)
     price_max: float | None = None
     revenue_min: float | None = None
     revenue_max: float | None = None
@@ -34,10 +40,42 @@ class Criteria:
     region: Region = field(default_factory=Region)
 
 
+_NEGATION = re.compile(r"\b(nicht|kein\w*|ohne)\b[^.!?\n]{0,30}$")
+
+
+def _signal_hits(text: str, patterns: dict[str, float], negatable: bool) -> tuple[float, list[str]]:
+    total, hits = 0.0, []
+    for pat, weight in patterns.items():
+        for m in re.finditer(norm(pat), text):  # gleiche Normalisierung wie der Text (ß -> ss)
+            if negatable and _NEGATION.search(text[max(0, m.start() - 40):m.start()]):
+                continue
+            total += weight
+            hits.append(m.group(0))
+            break
+    return total, hits
+
+
+def employee_count(text: str | None) -> tuple[int | None, int | None]:
+    """'6 - 10 Beschäftigte' -> (6, 10); 'bis 5' -> (1, 5); 'Einzelunternehmen' -> (1, 1); '12' -> (12, 12)."""
+    if not text:
+        return None, None
+    t = text.lower()
+    if "einzel" in t:
+        return 1, 1
+    nums = [int(n) for n in re.findall(r"\d+", t)]
+    if not nums:
+        return None, None
+    if t.strip().startswith(("bis", "unter")):
+        return 1, nums[0]
+    if len(nums) >= 2:
+        return nums[0], nums[1]
+    return nums[0], (None if re.search(r"über|mehr als|ab", t) else nums[0])
+
+
 def score(listing: Listing, c: Criteria) -> Listing:
     text = norm(listing.text())
     title = norm(listing.title)
-    s = 0.0
+    branche = 0.0
     matched: list[str] = []
     targets: list[str] = []
     # Zielbranche zählt nur, wenn sie die Branche des Inserats beschreibt: Titel, Branche, Kurzbeschreibung –
@@ -47,20 +85,45 @@ def score(listing: Listing, c: Criteria) -> Listing:
         k = norm(kw)
         if k in text and kw not in matched:
             # Treffer im Titel zählen doppelt
-            s += weight * (2 if k in title else 1)
+            branche += weight * (2 if k in title else 1)
             matched.append(kw)
             if kw in c.targets and k in head:
                 targets.append(kw)
-    listing.score = s
+
+    parts = {"branche": branche}
+    signals: dict[str, list[str]] = {}
+    for group, patterns in c.signals.items():
+        pts, hits = _signal_hits(text, patterns, negatable=(group == "huerden"))
+        parts[group] = pts
+        if hits:
+            signals[group] = hits
+
+    lo, hi = employee_count(listing.employees)
+    size = 0.0
+    if lo is not None:
+        mid = lo if hi is None else (lo + hi) / 2
+        for rule in c.size_points:
+            if rule.get("min", 0) <= mid <= rule.get("max", 10**9):
+                size = float(rule.get("points", 0))
+                break
+    parts["groesse"] = size
+
+    listing.score = sum(parts.values())
     listing.matched = matched
     listing.extra["zielbranchen"] = targets
-    # Einstiegshinweis: zuerst im Titel suchen, dann im ganzen Text
-    listing.extra.pop("einstieg", None)
+    listing.extra["teilscores"] = {k: round(v, 1) for k, v in parts.items()}
+    listing.extra["signale"] = signals
+    # Branchenhinweise: zuerst im Titel suchen, dann im ganzen Text
+    for key in ("einstieg", "einarbeitung", "hebel_ideen"):
+        listing.extra.pop(key, None)
     for where in (title, text):
-        note = next((r.get("note") for r in c.branch_notes
-                     if any(norm(t) in where for t in r.get("terms", []))), None)
-        if note:
-            listing.extra["einstieg"] = note
+        rule = next((r for r in c.branch_notes if any(norm(t) in where for t in r.get("terms", []))), None)
+        if rule:
+            listing.extra["einstieg"] = rule.get("note")
+            if rule.get("einarbeitung"):
+                listing.extra["einarbeitung"] = rule["einarbeitung"]
+            if rule.get("hebel"):
+                listing.extra["hebel_ideen"] = rule["hebel"]
             break
     return listing
 

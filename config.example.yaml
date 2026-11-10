@@ -114,18 +114,77 @@ scoring:
       in: [title, industry]
       unless: [hausmeister, rohrreinigung, kanalreinigung, hausverwaltung, immobilienverwaltung, weg-verwaltung]
       reason: "zu speziell"
-  # Hinweis zum Einstieg, je Branche (erster Treffer gilt)
+  # Je Branche: Einstieg (rechtlich), Einarbeitung (Einschätzung) und Hebel durch Prozesse/Automatisierung.
+  # Erster Treffer gilt (zuerst im Titel gesucht).
   branch_notes:
     - terms: [rohrreinigung, kanalreinigung, abflussreinigung, rohrservice, kanal-tv]
       note: "zulassungsfrei (handwerksähnlich)"
+      einarbeitung: "ca. 2–3 Monate, wenn erfahrene Techniker bleiben; Technik (Spirale, Hochdruck, Kamera) lernt man im Einsatz"
+      hebel: "Online-Terminbuchung und Notdienst-Disposition, Wartungsverträge mit Hausverwaltungen, Google-Profil und Bewertungen, digitale Einsatzberichte mit Kamerabild"
     - terms: [weg-verwaltung, hausverwaltung, immobilienverwaltung, mietverwaltung]
       note: "Erlaubnis §34c GewO, WEG: zertifizierter Verwalter"
+      einarbeitung: "ca. 3 Monate inkl. Vorbereitung auf die IHK-Prüfung „zertifizierter Verwalter“; Miet- und WEG-Recht ist der größte Brocken"
+      hebel: "Mieter-/Eigentümerportal, digitale Belegerfassung, automatische Neben- und Hausgeldabrechnung, Ticketsystem für Schadensmeldungen"
     - terms: [schädlingsbekämpfung]
       note: "Sachkunde-Lehrgang nötig"
-    - terms: [hausmeister, objektbetreuung, objektservice, winterdienst, grünpflege, grünflächenpflege,
-              gartenpflege, baumpflege, garten- und landschaftsbau, galabau, landschaftspflege, schlüsseldienst, entrümpelung, haushaltsauflösung, rauchmelder,
-              rauchwarnmelder, facility, gebäudeservice]
+      einarbeitung: "Sachkunde-Lehrgang in wenigen Wochen, sichere Praxis eher länger als 3 Monate"
+      hebel: "Monitoring-Verträge (HACCP) digital dokumentieren, Köderstationen per App prüfen, Tourenplanung"
+    - terms: [rauchmelder, rauchwarnmelder]
+      note: "zulassungsfrei (Fachkraft-Schulung nach DIN 14676)"
+      einarbeitung: "wenige Wochen inkl. Schulung zur Fachkraft für Rauchwarnmelder"
+      hebel: "Wartungsintervalle und Mieter-Terminbenachrichtigung automatisieren, Prüfprotokolle digital, Funkmelder mit Fernprüfung"
+    - terms: [winterdienst, grünpflege, grünflächenpflege, gartenpflege, baumpflege, garten- und landschaftsbau, galabau, landschaftspflege]
       note: "zulassungsfrei"
+      einarbeitung: "wenige Wochen für Pflege und Winterdienst; Neuanlagen im GaLaBau brauchen Erfahrung im Team"
+      hebel: "Saison- und Jahresverträge, Routen- und Einsatzplanung, Winterdienst nach Wetterdaten, digitale Leistungsnachweise mit Foto und GPS"
+    - terms: [schlüsseldienst, entrümpelung, haushaltsauflösung]
+      note: "zulassungsfrei"
+      einarbeitung: "wenige Wochen; Schlüsseldienst: Öffnungstechnik lernt man von erfahrenen Mitarbeitern"
+      hebel: "transparente Online-Preise und Buchung, Notdienst-Disposition, Kooperationen mit Hausverwaltungen"
+    - terms: [hausmeister, objektbetreuung, objektservice, facility, gebäudeservice]
+      note: "zulassungsfrei"
+      einarbeitung: "wenige Wochen; entscheidend sind die Kundenbeziehungen und ein eingespieltes Team"
+      hebel: "Tourenplanung, digitale Leistungsnachweise mit Foto, Rechnungen automatisch aus Rahmenverträgen, Mängelmeldungen per App an Hausverwaltungen"
+
+  # Signale im Inseratstext (reguläre Ausdrücke, Kleinschreibung) -> Teilbewertungen
+  signals:
+    # Prozess- und Automatisierungspotenzial
+    hebel:
+      'papier|zettel|karteikarte': 4
+      'excel': 3
+      '\bfax\b': 3
+      'keine (eigene )?(homepage|website|webseite)|ohne (homepage|website|webseite)': 4
+      'kein(e|en)? (online|internet)': 3
+      'mundpropaganda|weiterempfehlung': 3
+      'ohne werbung|keine werbung|kein marketing|nie geworben|ohne marketing': 4
+      'ausbaufähig|ausbaupotenzial|erweiterungspotenzial': 3
+      'optimierungspotenzial|digitalisierungspotenzial|nicht digitalisiert|wenig digitalisiert': 5
+      'wachstumspotenzial|entwicklungspotenzial|steigerungspotenzial': 2
+      'altersgründen|ruhestand|rente': 2
+      'wartungsvertr|rahmenvertr|jahresvertr|dauerauftr|daueraufträge': 4
+      'hausverwaltungen|wohnungsbaugesellschaft|wohnungsgesellschaft|genossenschaft': 3
+      'wiederkehrend|regelmäßig': 2
+    # Quereinsteiger-freundlich (in 3 Monaten machbar)
+    einstieg:
+      'einarbeitung|eingearbeitet|einarbeiten': 4
+      'übergangsphase|übergangszeit|begleit|steht .{0,30}zur seite': 3
+      'eingespielte(s|n)? team|erfahrene(n)? mitarbeiter|langjährige(n)? mitarbeiter|vorarbeiter|betriebsleiter': 4
+      'quereinsteig|branchenfremd|keine vorkenntnisse|nicht zwingend erforderlich|auch ohne (fach|branchen)': 5
+      'dokumentiert|prozesse (sind )?(klar|beschrieben)|handbuch': 2
+    # Hürden (zählen nicht, wenn kurz davor "nicht/kein/ohne" steht)
+    huerden:
+      'meisterbrief|meistertitel|meisterpflicht|meister erforderlich': -8
+      'fachkenntnisse (sind )?(erforderlich|notwendig|vorausgesetzt)|branchenerfahrung (ist )?(erforderlich|notwendig|vorausgesetzt)': -5
+      'nur für (fachleute|branchenkenner|fachbetriebe)|ausschließlich (an )?(fachleute|wettbewerber|branchen)': -6
+      'inhaber (ist )?(voll )?(im )?(tagesgeschäft|operativ) (eingebunden|tätig)': -2
+
+  # Größe: 2–20 Mitarbeiter = genug Struktur für Prozesse, noch überschaubar
+  size_points:
+    - {min: 0, max: 1.5, points: 0}
+    - {min: 1.5, max: 20, points: 4}
+    - {min: 20, max: 50, points: 1}
+    - {min: 50, max: 100000, points: -3}
+
   # Mindest-Score (0 = alle Zielbranchen zeigen, nur sortiert)
   min_score: 0
 

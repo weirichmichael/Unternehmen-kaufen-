@@ -93,11 +93,16 @@ def build(rows: list[Row]) -> tuple[str, str, str]:
         l = r.listing
         partner = f"<br><span style='color:#6c6c66'>betreut von {e(l.extra['regionalpartner'])}</span>" if l.extra.get("regionalpartner") else ""
         teaser = f"<br><span style='color:#444'>{e((l.teaser or '')[:220])}</span>" if l.teaser else ""
+        sig = l.extra.get("signale") or {}
+        bits = [f"Hebel: {', '.join(sig['hebel'])}"] if sig.get("hebel") else []
+        bits += [f"Einstieg: {', '.join(sig['einstieg'])}"] if sig.get("einstieg") else []
+        bits += [f"Hürde: {', '.join(sig['huerden'])}"] if sig.get("huerden") else []
+        signals = f"<br><span style='color:#2a4d8f;font-size:13px'>{e(' · '.join(bits))}</span>" if bits else ""
         items.append(
             "<tr><td style='padding:10px 0;border-bottom:1px solid #eeeeea'>"
             f"<a href='{e(l.url)}' style='color:#2a4d8f;font-weight:600;text-decoration:none'>{e(l.title)}</a>"
             f"<br><span style='color:#1c1c1a'>{e(' · '.join(_facts(l)))}</span>"
-            f"<br><span style='color:#6c6c66'>{e(l.source)}</span>{partner}{teaser}</td></tr>"
+            f"<br><span style='color:#6c6c66'>{e(l.source)}</span>{partner}{signals}{teaser}</td></tr>"
         )
     button = (f"<p><a href='{e(base)}/' style='display:inline-block;padding:10px 16px;border-radius:8px;"
               f"background:#2a4d8f;color:#fff;text-decoration:none;font-weight:600'>Übersicht öffnen</a></p>") if base else ""

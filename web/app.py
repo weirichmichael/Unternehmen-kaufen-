@@ -62,6 +62,8 @@ def _view(row, generated: datetime) -> dict:
         "employees": l.employees, "teaser": l.teaser, "description": l.description,
         "matched": l.matched, "score": round(l.score), "partner": l.extra.get("regionalpartner"),
         "einstieg": l.extra.get("einstieg"),
+        "teil": l.extra.get("teilscores") or {}, "signale": l.extra.get("signale") or {},
+        "einarbeitung": l.extra.get("einarbeitung"), "hebel_ideen": l.extra.get("hebel_ideen"),
         "expose": l.extra.get("expose_pdf"), "also": l.extra.get("auch_auf"),
         "reject": row.reject, "status": row.status, "note": row.note or "",
         "new": generated - first < timedelta(days=3), "first_seen": row.first_seen,
@@ -104,6 +106,8 @@ def uebersicht(request: Request, tab: str = "offen", q: str = "", quelle: str = 
     shown = [it for it in items if keep(it)]
     if sort == "km":
         shown.sort(key=lambda it: (it["km"] is None, it["km"] or 0, -it["score"]))
+    elif sort in ("hebel", "einstieg"):
+        shown.sort(key=lambda it: (-(it["teil"].get(sort) or 0), -it["score"]))
     elif sort == "neu":
         shown.sort(key=lambda it: (it["first_seen"], it["score"]), reverse=True)
     else:

@@ -20,6 +20,13 @@
  .teaser{margin:0;font-size:13.5px;overflow-wrap:anywhere}
  .marken{display:flex;flex-wrap:wrap;gap:4px}
  .grund{font-size:13px;color:var(--fehlt)}
+ .teil{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:12.5px;color:var(--matt);font-variant-numeric:tabular-nums}
+ .teil b{color:var(--text)}
+ .signale{display:flex;flex-wrap:wrap;gap:4px}
+ .sig-hebel{background:#e9eef7;border-color:#c3d0ea;color:var(--akzent)}
+ .sig-einstieg{background:#e7f3eb;border-color:#b9dcc5;color:var(--gut)}
+ .sig-huerde{background:#fdecea;border-color:#f5c6c0;color:#8a231a}
+ details.branche p{margin:6px 0;color:var(--text)}
  .marke.einstieg.frei{background:#e7f3eb;border-color:#b9dcc5;color:var(--gut)}
  .marke.einstieg.auflage{background:#fbf2e3;border-color:#ecd3a6;color:#8a5a10}
  details{font-size:13px;color:var(--matt)}
@@ -57,6 +64,8 @@
   <select name="quelle" aria-label="Börse"><option value="">alle Börsen</option>{% for s in quellen %}<option {{ 'selected' if s == quelle }}>{{ s }}</option>{% endfor %}</select>
   <select name="sort" aria-label="Sortierung">
     <option value="score" {{ 'selected' if sort == 'score' }}>Passung</option>
+    <option value="hebel" {{ 'selected' if sort == 'hebel' }}>Hebel (Prozesse)</option>
+    <option value="einstieg" {{ 'selected' if sort == 'einstieg' }}>Einstieg</option>
     <option value="km" {{ 'selected' if sort == 'km' }}>Entfernung</option>
     <option value="neu" {{ 'selected' if sort == 'neu' }}>Neueste</option>
   </select>
@@ -87,6 +96,21 @@
       {% if it.employees %}<span>MA <b>{{ it.employees }}</b></span>{% endif %}
     </div>
     {% if it.reject %}<div class="grund">Ausgeblendet: {{ it.reject }}</div>{% endif %}
+    {% if it.teil %}
+    <div class="teil">
+      <span>Branche <b>{{ it.teil.branche|round|int }}</b></span>
+      <span>Hebel <b>{{ (it.teil.hebel or 0)|round|int }}</b></span>
+      <span>Einstieg <b>{{ ((it.teil.einstieg or 0) + (it.teil.huerden or 0))|round|int }}</b></span>
+      <span>Größe <b>{{ (it.teil.groesse or 0)|round|int }}</b></span>
+    </div>
+    {% endif %}
+    {% if it.signale %}
+    <div class="signale">
+      {% for s in it.signale.get('hebel', []) %}<span class="marke sig-hebel">⚙ {{ s }}</span>{% endfor %}
+      {% for s in it.signale.get('einstieg', []) %}<span class="marke sig-einstieg">✓ {{ s }}</span>{% endfor %}
+      {% for s in it.signale.get('huerden', []) %}<span class="marke sig-huerde">✗ {{ s }}</span>{% endfor %}
+    </div>
+    {% endif %}
     {% if it.teaser %}<p class="teaser">{{ it.teaser }}</p>{% endif %}
     <div class="marken">
       {% if it.einstieg %}<span class="marke einstieg {{ 'frei' if it.einstieg.startswith('zulassungsfrei') else 'auflage' }}">{{ it.einstieg }}</span>{% endif %}
@@ -96,6 +120,12 @@
       {% if it.expose %}<a class="marke" href="{{ it.expose }}" target="_blank" rel="noopener">Exposé (PDF)</a>{% endif %}
       {% if it.also %}<a class="marke" href="{{ it.also }}" target="_blank" rel="noopener">auch auf anderer Börse</a>{% endif %}
     </div>
+    {% if it.einarbeitung or it.hebel_ideen %}
+    <details class="branche"><summary>Einarbeitung &amp; Hebel für diese Branche</summary>
+      {% if it.einarbeitung %}<p><b>Einarbeitung (Einschätzung):</b> {{ it.einarbeitung }}</p>{% endif %}
+      {% if it.hebel_ideen %}<p><b>Hebel:</b> {{ it.hebel_ideen }}</p>{% endif %}
+    </details>
+    {% endif %}
     {% if it.description %}<details><summary>Beschreibung</summary><pre>{{ it.description }}</pre></details>{% endif %}
     <div class="aktionen">
       {% for s in ['interessant', 'kontaktiert', 'verworfen'] %}

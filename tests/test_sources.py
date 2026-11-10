@@ -175,3 +175,28 @@ def test_focus_targets_meisterpflicht_and_notes():
     assert judge(title="Imbiss abzugeben")[0] == "keine Zielbranche"
     assert judge(title="Hausverwaltung für Arztpraxen")[0] is None  # Ausnahme: Hausverwaltung im Titel
     assert judge(title="Physiotherapiepraxis mit Hausmeisterdienst")[0] is None  # unless: hausmeister
+
+
+def test_subscores_leverage_entry_hurdles_size():
+    from dealscout.config import load_config
+    from dealscout.scoring import employee_count
+
+    c = load_config("config.example.yaml").criteria
+    l = score(_l(title="Rohrreinigung abzugeben", employees="6 - 10 Beschäftigte",
+                 description="Aufträge kommen über Mundpropaganda, Rechnungen noch auf Papier. "
+                             "Wartungsverträge mit Hausverwaltungen. Einarbeitung durch den Inhaber, "
+                             "eingespieltes Team. Branchenerfahrung nicht zwingend erforderlich."), c)
+    t = l.extra["teilscores"]
+    assert t["hebel"] >= 10 and t["einstieg"] >= 10 and t["groesse"] == 4
+    assert t["huerden"] == 0  # "nicht zwingend erforderlich" ist keine Hürde
+    assert "papier" in l.extra["signale"]["hebel"]
+    assert "Online-Terminbuchung" in l.extra["hebel_ideen"] and "Monate" in l.extra["einarbeitung"]
+
+    l = score(_l(title="Hausmeisterservice", description="Meisterbrief erforderlich. Regelmäßig Aufträge."), c)
+    assert l.extra["teilscores"]["huerden"] < 0
+    assert "regelmässig" in " ".join(l.extra["signale"]["hebel"])  # ß-Normalisierung greift
+
+    assert employee_count("6 - 10 Beschäftigte") == (6, 10)
+    assert employee_count("bis 5 Beschäftigte") == (1, 5)
+    assert employee_count("Einzelunternehmen") == (1, 1)
+    assert employee_count("Nicht veröffentlicht") == (None, None)

@@ -102,6 +102,21 @@ Ausgeblendet werden (mit Grund, im Tab „Vom Tool ausgeblendet“ einsehbar):
 
 Die Listen stehen in `config.yaml` (`targets`, `exclude_title`, `branch_notes`) und lassen sich frei anpassen.
 
+### Teilbewertungen: Wo lässt sich etwas rausholen – und schaffe ich den Einstieg in 3 Monaten?
+
+Der Gesamtscore setzt sich aus vier Teilen zusammen, die in Weboberfläche und Mail einzeln stehen:
+
+| Teil | Woraus | Beispiele |
+|---|---|---|
+| **Branche** | Zielbranchen + gute Merkmale | Hausmeister, Rohrreinigung, Wartungsverträge, Stammkunden |
+| **Hebel** | Signale für Prozess-/Automatisierungspotenzial | Papier, Excel, keine Website, nur Mundpropaganda, ausbaufähig, Rahmenverträge, Hausverwaltungen als Kunden |
+| **Einstieg** | Quereinsteiger-Signale minus Hürden | Einarbeitung, eingespieltes Team, „nicht zwingend erforderlich“ / Meisterbrief erforderlich, nur für Fachleute |
+| **Größe** | Mitarbeiterzahl | 2–20 = +4 (genug Struktur, noch überschaubar), Ein-Mann = 0, über 50 = −3 |
+
+Zu jeder Zielbranche gibt es eine **Einschätzung der Einarbeitungszeit** und **konkrete Hebel-Ideen**
+(z. B. Rohrreinigung: Online-Terminbuchung, Notdienst-Disposition, Wartungsverträge mit Hausverwaltungen).
+In der Weboberfläche lässt sich nach „Hebel“ oder „Einstieg“ sortieren. Signale und Gewichte: `scoring.signals`.
+
 ## Bewertung
 
 - **Region / Entfernung**: Für jedes Inserat wird die Entfernung zur eigenen PLZ berechnet

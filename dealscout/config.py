@@ -45,6 +45,9 @@ def load_config(path: str | Path) -> Config:
         targets={str(k): float(v) for k, v in (sc.get("targets") or {}).items()},
         require_target=bool(sc.get("require_target", False)),
         branch_notes=list(sc.get("branch_notes") or []),
+        signals={str(g): {str(k): float(v) for k, v in (pats or {}).items()}
+                 for g, pats in (sc.get("signals") or {}).items()},
+        size_points=list(sc.get("size_points") or []),
         min_score=float(sc.get("min_score", 0)),
         price_max=flt.get("price_max"),
         revenue_min=flt.get("revenue_min"),
