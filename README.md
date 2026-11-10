@@ -82,6 +82,26 @@ python -m dealscout mark dub:abc... verworfen
 
 Status: `neu`, `interessant`, `kontaktiert`, `verworfen` (verworfene werden im Report ausgeblendet).
 
+## Fokus: Betriebe, die man immer braucht – auch für Quereinsteiger
+
+Die Standard-Config sucht gezielt nach Dienstleistungen mit wiederkehrenden Aufträgen, die man **ohne
+Meisterbrief** übernehmen darf:
+
+| Zielbranche | Einstieg |
+|---|---|
+| Hausmeisterservice, Objektbetreuung, Winterdienst, Grün-/Gartenpflege, GaLaBau, Schlüsseldienst, Entrümpelung, Rauchmelder-Service | zulassungsfrei |
+| Rohr-, Kanal- und Abflussreinigung, Kanal-TV | zulassungsfrei (handwerksähnliches Gewerbe, Anlage B HwO) |
+| Hausverwaltung, Miet-/WEG-Verwaltung | Erlaubnis §34c GewO; WEG zusätzlich „zertifizierter Verwalter“ (IHK) |
+| Schädlingsbekämpfung | Sachkunde-Lehrgang |
+
+Ausgeblendet werden (mit Grund, im Tab „Vom Tool ausgeblendet“ einsehbar):
+- **Meisterpflicht** (Anlage A HwO: Elektro, SHK, Dach, Maler, Tischler, Fliesen, Kfz, Friseur, Gebäudereinigung …) –
+  außer Kombibetriebe mit „Hausmeister“ im Titel,
+- **zu speziell** (Praxen, Kanzleien, Pflege, Ingenieurbüros, Produktion, IT, Taxi, Hotel …),
+- alles **ohne Zielbranche** im Titel, in der Branchenangabe oder der Kurzbeschreibung.
+
+Die Listen stehen in `config.yaml` (`targets`, `exclude_title`, `branch_notes`) und lassen sich frei anpassen.
+
 ## Bewertung
 
 - **Region / Entfernung**: Für jedes Inserat wird die Entfernung zur eigenen PLZ berechnet

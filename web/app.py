@@ -61,6 +61,7 @@ def _view(row, generated: datetime) -> dict:
         "revenue": _range(l.revenue_min, l.revenue_max, l.revenue), "earnings": l.earnings,
         "employees": l.employees, "teaser": l.teaser, "description": l.description,
         "matched": l.matched, "score": round(l.score), "partner": l.extra.get("regionalpartner"),
+        "einstieg": l.extra.get("einstieg"),
         "expose": l.extra.get("expose_pdf"), "also": l.extra.get("auch_auf"),
         "reject": row.reject, "status": row.status, "note": row.note or "",
         "new": generated - first < timedelta(days=3), "first_seen": row.first_seen,

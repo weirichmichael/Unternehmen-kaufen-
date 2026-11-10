@@ -20,6 +20,8 @@
  .teaser{margin:0;font-size:13.5px;overflow-wrap:anywhere}
  .marken{display:flex;flex-wrap:wrap;gap:4px}
  .grund{font-size:13px;color:var(--fehlt)}
+ .marke.einstieg.frei{background:#e7f3eb;border-color:#b9dcc5;color:var(--gut)}
+ .marke.einstieg.auflage{background:#fbf2e3;border-color:#ecd3a6;color:#8a5a10}
  details{font-size:13px;color:var(--matt)}
  .aktionen{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-top:1px solid #eeeeea;padding-top:8px}
  .aktionen form{margin:0}
@@ -87,6 +89,7 @@
     {% if it.reject %}<div class="grund">Ausgeblendet: {{ it.reject }}</div>{% endif %}
     {% if it.teaser %}<p class="teaser">{{ it.teaser }}</p>{% endif %}
     <div class="marken">
+      {% if it.einstieg %}<span class="marke einstieg {{ 'frei' if it.einstieg.startswith('zulassungsfrei') else 'auflage' }}">{{ it.einstieg }}</span>{% endif %}
       <span class="marke">{{ it.source }}</span>
       {% if it.partner %}<span class="marke">{{ it.partner }}</span>{% endif %}
       {% for m in it.matched %}<span class="marke kw">{{ m }}</span>{% endfor %}

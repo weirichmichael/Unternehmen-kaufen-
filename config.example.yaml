@@ -18,47 +18,115 @@ region:
 search:
   # Suchbegriffe, die bei jeder Börse abgefragt werden
   queries:
+    - Hausmeister
+    - Hausmeisterservice
+    - Objektbetreuung
     - Hausverwaltung
     - Immobilienverwaltung
     - WEG-Verwaltung
-    - Hausmeister
-    - Hausmeisterservice
-    - Gebäudeservice
+    - Rohrreinigung
+    - Kanalreinigung
+    - Abflussreinigung
+    - Winterdienst
+    - Grünpflege
+    - Gartenpflege
+    - Schlüsseldienst
+    - Entrümpelung
+    - Schädlingsbekämpfung
+    - Rauchmelder
     - Facility
   # Zusätzlich ALLE Inserate im Umkreis holen (nur Börsen mit Umkreissuche).
   # So finden wir auch Branchen, an die wir noch nicht gedacht haben.
   browse_all_in_radius: true
 
 scoring:
-  # Begriff: Gewicht. Treffer im Titel zählen doppelt.
-  keywords:
+  # ZIELBRANCHEN: Dienstleistungen, die immer gebraucht werden, mit wiederkehrenden Aufträgen,
+  # und die ein Quereinsteiger ohne Meisterbrief führen darf. Treffer im Titel zählen doppelt.
+  targets:
+    hausmeister: 12
+    objektbetreuung: 10
+    objektservice: 8
     hausverwaltung: 10
     immobilienverwaltung: 10
     weg-verwaltung: 10
     mietverwaltung: 8
-    hausmeister: 10
-    gebäudeservice: 8
+    rohrreinigung: 12
+    kanalreinigung: 12
+    abflussreinigung: 12
+    rohrservice: 10
+    kanal-tv: 8
+    dichtheitsprüfung: 6
+    winterdienst: 8
+    grünpflege: 6
+    grünflächenpflege: 6
+    gartenpflege: 6
+    baumpflege: 4
+    garten- und landschaftsbau: 6
+    galabau: 6
+    landschaftspflege: 6
+    schlüsseldienst: 8
+    entrümpelung: 6
+    haushaltsauflösung: 6
+    schädlingsbekämpfung: 6
+    rauchmelder: 8
+    rauchwarnmelder: 8
     facility: 6
-    winterdienst: 4
-    grünpflege: 3
-    gartenpflege: 3
-    wartung: 2
-    dienstleistung: 1
-    stammkunden: 2
+    gebäudeservice: 8
+  require_target: true   # ohne Zielbranche -> ausgeblendet ("keine Zielbranche")
+  # Zusatzpunkte für gute Merkmale (zählen nur, wenn eine Zielbranche passt)
+  keywords:
     wiederkehrend: 3
+    wartungsverträge: 4
+    rahmenverträge: 4
     verträge: 2
+    stammkunden: 2
+    kundenstamm: 2
+    hausverwaltungen: 3      # Hausverwaltungen als Kunden
     nachfolge: 1
+    einarbeitung: 3          # Verkäufer arbeitet ein – gut für Quereinsteiger
+    übergabe: 1
   # Inserate mit diesen Begriffen ausblenden
   exclude:
     - insolvenz
-  # Branchen ausblenden, wenn der Begriff im TITEL steht – außer einer der "unless"-Begriffe steht auch drin
+  # Branchen ausblenden, wenn ein Begriff im Titel (bzw. "in") steht – außer einer der "unless"-Begriffe steht im Titel
   exclude_title:
+    # Meisterpflicht (Handwerksordnung Anlage A): als Quereinsteiger nur mit angestelltem Meister möglich
+    - terms: [elektro, sanitär, heizung, shk, klempner, installateur, gas- und wasser, dachdeck, bedachung,
+              zimmerei, zimmerer, maler, lackier, stuckateur, tischler, schreiner, metallbau, schlosserei,
+              kfz, karosserie, autowerkstatt, bäcker, konditor, fleischer, metzger, friseur, barbershop,
+              glaser, fensterbau, fliesen, estrich, parkett, raumausstatter, rollladen, gerüst, maurer,
+              beton, straßenbau, brunnenbau, kachelofen, ofenbau, schornstein, zahntechn, augenoptik,
+              optiker, hörakustik, orthopädie, steinmetz, kälte, klima, mechatronik, zweirad, landmaschinen]
+      in: [title, industry]
+      unless: [hausmeister, objektbetreuung, rohrreinigung, kanalreinigung, abfluss]
+      reason: "Meisterpflicht"
+    # Seit 2020 ebenfalls Meisterpflicht – und ohnehin nicht gewünscht
     - terms: [gebäudereinigung, gebäude- und fassadenreinigung, fassadenreinigung, glasreinigung,
               unterhaltsreinigung, reinigungsunternehmen, reinigungsbetrieb, reinigungsfirma,
               reinigungsservice, objektspezifische reinigung, putzfirma]
-      unless: [hausmeister, hausverwaltung, immobilienverwaltung, facility, kanalreinigung, rohrreinigung]
+      unless: [hausmeister, hausverwaltung, immobilienverwaltung, kanalreinigung, rohrreinigung]
       reason: "Gebäudereinigung (ausgeschlossen)"
-  # Mindest-Score (0 = alles in der Region zeigen, nur sortiert)
+    # Zu speziell / Fachqualifikation nötig
+    - terms: [arzt, ärzt, zahnarzt, praxis, apotheke, physiotherap, therapie, pflegedienst, pflegeeinrichtung,
+              intensivpflege, tagespflege, kanzlei, steuerber, ingenieur, architekt, labor, software, saas,
+              medizintechnik, maschinenbau, fertigung, produktion, hersteller, großhandel, spedition, taxi,
+              hotel, makler, versicherung, finanz, arbeitsschutz, arbeitssicherheit]
+      in: [title, industry]
+      unless: [hausmeister, rohrreinigung, kanalreinigung, hausverwaltung, immobilienverwaltung, weg-verwaltung]
+      reason: "zu speziell"
+  # Hinweis zum Einstieg, je Branche (erster Treffer gilt)
+  branch_notes:
+    - terms: [rohrreinigung, kanalreinigung, abflussreinigung, rohrservice, kanal-tv]
+      note: "zulassungsfrei (handwerksähnlich)"
+    - terms: [weg-verwaltung, hausverwaltung, immobilienverwaltung, mietverwaltung]
+      note: "Erlaubnis §34c GewO, WEG: zertifizierter Verwalter"
+    - terms: [schädlingsbekämpfung]
+      note: "Sachkunde-Lehrgang nötig"
+    - terms: [hausmeister, objektbetreuung, objektservice, winterdienst, grünpflege, grünflächenpflege,
+              gartenpflege, baumpflege, garten- und landschaftsbau, galabau, landschaftspflege, schlüsseldienst, entrümpelung, haushaltsauflösung, rauchmelder,
+              rauchwarnmelder, facility, gebäudeservice]
+      note: "zulassungsfrei"
+  # Mindest-Score (0 = alle Zielbranchen zeigen, nur sortiert)
   min_score: 0
 
 filters:
@@ -93,6 +161,9 @@ sources:
       - kundenstamm
       - hausverwaltung
       - hausmeister
+      - rohrreinigung
+      - winterdienst
+      - schlüsseldienst
 
 fetch_details: true      # Detailseite für neue Inserate laden (Preis, Umsatz, Beschreibung)
 delay_seconds: 1.5       # Pause zwischen Anfragen – bitte nicht runterdrehen

@@ -144,6 +144,34 @@ def test_wanted_ads_are_rejected():
 def test_exclude_title_with_exception():
     rule = {"terms": ["gebäudereinigung"], "unless": ["hausmeister"], "reason": "Gebäudereinigung (ausgeschlossen)"}
     c = Criteria(exclude_title=[rule])
-    assert rejection_reason(_l(title="Gebäudereinigung zu verkaufen"), c) == "Gebäudereinigung (ausgeschlossen)"
+    assert rejection_reason(_l(title="Gebäudereinigung zu verkaufen"), c).startswith("Gebäudereinigung (ausgeschlossen)")
     assert rejection_reason(_l(title="Hausmeisterservice / Gebäudereinigung"), c) is None
     assert rejection_reason(_l(title="Hausverwaltung", teaser="inkl. Treppenhausreinigung"), c) is None
+
+
+def test_focus_targets_meisterpflicht_and_notes():
+    from dealscout.config import load_config
+
+    c = load_config("config.example.yaml").criteria
+
+    def judge(**kw):
+        l = score(_l(**kw), c)
+        return rejection_reason(l, c), l.extra.get("einstieg")
+
+    # Zielbranchen bleiben, mit Einstiegshinweis
+    assert judge(title="Rohr- und Kanalreinigungsbetrieb abzugeben") == (None, "zulassungsfrei (handwerksähnlich)")
+    assert judge(title="Hausmeisterservice sucht Nachfolger") == (None, "zulassungsfrei")
+    reason, note = judge(title="Kleine Hausverwaltung zu verkaufen")
+    assert reason is None and "34c" in note
+    # Meisterpflicht raus – auch über die Branchenangabe der Börse
+    assert judge(title="Fachbetrieb für Heizung und Sanitär", teaser="Kunden sind Hausverwaltungen")[0].startswith("Meisterpflicht")
+    assert judge(title="Etablierter Betrieb sucht Nachfolger", industry="Elektroinstallation",
+                 teaser="Wartung für Hausverwaltung")[0].startswith("Meisterpflicht")
+    # ... außer der Hausmeister-Teil steht im Titel
+    assert judge(title="Hausmeisterservice & Malerarbeiten")[0] is None
+    # Zielbranche nur im Langtext zählt nicht
+    assert judge(title="Bau- und Sanierungsunternehmen", description="Unsere Kunden sind Hausverwaltungen.")[0] == "keine Zielbranche"
+    # fremde Branche ohne Zielbezug
+    assert judge(title="Imbiss abzugeben")[0] == "keine Zielbranche"
+    assert judge(title="Hausverwaltung für Arztpraxen")[0] is None  # Ausnahme: Hausverwaltung im Titel
+    assert judge(title="Physiotherapiepraxis mit Hausmeisterdienst")[0] is None  # unless: hausmeister

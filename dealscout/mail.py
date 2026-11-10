@@ -62,6 +62,8 @@ def _facts(l) -> list[str]:
         f.append(f"Umsatz {rev}")
     if l.employees:
         f.append(f"MA {l.employees}")
+    if l.extra.get("einstieg"):
+        f.append(l.extra["einstieg"])
     return f
 
 

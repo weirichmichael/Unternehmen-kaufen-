@@ -154,6 +154,8 @@ def write_html(rows: list[Row], path: Path, new_keys: set[str] | None = None, ti
             meta.append(f"<span>Ergebnis <b>{e(l.earnings)}</b></span>")
         meta.append(f"<span>Preis <b>{e(l.extra.get('kaufpreis_text') or _range(l.price_min, l.price_max, l.price) or '?')}</b></span>")
         meta.append(f"<span>MA <b>{e(l.employees or '?')}</b></span>")
+        if l.extra.get("einstieg"):
+            meta.append(f"<span>Einstieg: <b>{e(l.extra['einstieg'])}</b></span>")
         if l.extra.get("regionalpartner"):
             meta.append(f"<span>betreut von <b>{e(l.extra['regionalpartner'])}</b></span>")
         meta.append(f"<span title='{e(l.extra.get('ort_genauigkeit') or '')}'>{e(_distance(l))}</span>")

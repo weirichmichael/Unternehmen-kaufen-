@@ -22,6 +22,11 @@ class Criteria:
     # Branchen ausblenden, wenn der Begriff im Titel steht – außer einer der "unless"-Begriffe auch
     # (z.B. Reinigung raus, aber "Hausmeisterservice / Gebäudereinigung" bleibt)
     exclude_title: list[dict] = field(default_factory=list)
+    # Zielbranchen (Begriff -> Gewicht). Mit require_target muss mindestens eine davon vorkommen.
+    targets: dict[str, float] = field(default_factory=dict)
+    require_target: bool = False
+    # Hinweise zum Einstieg je Branche: [{terms: [...], note: "zulassungsfrei"}, ...] – erster Treffer zählt
+    branch_notes: list[dict] = field(default_factory=list)
     price_max: float | None = None
     revenue_min: float | None = None
     revenue_max: float | None = None
@@ -34,14 +39,29 @@ def score(listing: Listing, c: Criteria) -> Listing:
     title = norm(listing.title)
     s = 0.0
     matched: list[str] = []
-    for kw, weight in c.keywords.items():
+    targets: list[str] = []
+    # Zielbranche zählt nur, wenn sie die Branche des Inserats beschreibt: Titel, Branche, Kurzbeschreibung –
+    # nicht der Langtext ("Kunden sind Hausverwaltungen" macht noch keine Hausverwaltung)
+    head = norm(" ".join(p for p in (listing.title, listing.industry, listing.teaser) if p))
+    for kw, weight in list(c.targets.items()) + list(c.keywords.items()):
         k = norm(kw)
-        if k in text:
+        if k in text and kw not in matched:
             # Treffer im Titel zählen doppelt
             s += weight * (2 if k in title else 1)
             matched.append(kw)
+            if kw in c.targets and k in head:
+                targets.append(kw)
     listing.score = s
     listing.matched = matched
+    listing.extra["zielbranchen"] = targets
+    # Einstiegshinweis: zuerst im Titel suchen, dann im ganzen Text
+    listing.extra.pop("einstieg", None)
+    for where in (title, text):
+        note = next((r.get("note") for r in c.branch_notes
+                     if any(norm(t) in where for t in r.get("terms", []))), None)
+        if note:
+            listing.extra["einstieg"] = note
+            break
     return listing
 
 
@@ -93,9 +113,12 @@ def rejection_reason(listing: Listing, c: Criteria) -> str | None:
     for rule in c.exclude_title:
         terms = [norm(t) for t in rule.get("terms", [])]
         unless = [norm(t) for t in rule.get("unless", [])]
-        hit = next((t for t in terms if t in title), None)
+        # Standard: nur der Titel; mit "in: [title, industry]" auch die Branchenangabe der Börse
+        fields = rule.get("in", ["title"])
+        hay = " | ".join(norm(getattr(listing, f) or "") for f in fields)
+        hit = next((t for t in terms if t in hay), None)
         if hit and not any(u in title for u in unless):
-            return rule.get("reason") or f"Branche '{hit}' ausgeschlossen"
+            return (rule.get("reason") or "Branche ausgeschlossen") + f" („{hit}“)"
     for ex in c.exclude:
         if re.search(r"\b" + re.escape(norm(ex)), text):
             return f"Ausschlussbegriff '{ex}'"
@@ -106,6 +129,8 @@ def rejection_reason(listing: Listing, c: Criteria) -> str | None:
         return "Umsatz zu hoch"
     if c.revenue_min is not None and listing.revenue_max is not None and listing.revenue_max < c.revenue_min:
         return "Umsatz zu niedrig"
+    if c.require_target and c.targets and not listing.extra.get("zielbranchen"):
+        return "keine Zielbranche"
     if listing.score < c.min_score:
         return "Score zu niedrig"
     return None
